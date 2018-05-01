@@ -7,6 +7,9 @@ public class Category {
 	private long id;
 	private String name;
 
+	public Category() {
+	}
+
 	// * constructor to be used when putting object in database
 	Category(String name) throws CategoryException {
 		this.setName(name);

@@ -25,6 +25,8 @@ public final class Comment implements Comparable<Comment> {
     private HashSet<Long> peopleLiked = new HashSet<Long>();
     private HashSet<Long> peopleDisliked = new HashSet<Long>();
 
+	public Comment() {
+	}
 
 	// ::::::::: constructors to be used when posting a new comment :::::::::
 	public Comment(String content, long postId, long userId, User sentBy) throws CommentException {

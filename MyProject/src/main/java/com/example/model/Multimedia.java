@@ -6,6 +6,9 @@ public class Multimedia {
     private boolean isVideo;
     private Post post;
 
+    public Multimedia() {
+    }
+
     //constructor to be used when fetching from database
     public Multimedia(long id, String url, boolean isVideo, Post post) {
         this(url, isVideo, post);
