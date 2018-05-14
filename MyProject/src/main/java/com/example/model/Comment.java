@@ -1,15 +1,20 @@
 package com.example.model;
 
 import com.example.model.exceptions.*;
+import org.hibernate.validator.constraints.Range;
 
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+@Entity
+@Table(name = "comments")
 public final class Comment implements Comparable<Comment> {
-	// ::::::::: main object characteristics :::::::::
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id = 0;
 	private String content = null;
 	private int likesCount = 0;
@@ -19,11 +24,13 @@ public final class Comment implements Comparable<Comment> {
 	private Timestamp datetime = null;
 	private String datetimeString = null; 
 	
-	// ::::::::: additional object characteristics :::::::::
 	private static final int MAX_CONTENT_LENGTH = 500;
+	@ManyToOne
 	private User sentBy = null;
-    private HashSet<Long> peopleLiked = new HashSet<Long>();
-    private HashSet<Long> peopleDisliked = new HashSet<Long>();
+	@OneToMany(targetEntity = Long.class)
+    private Set<Long> peopleLiked = new HashSet<Long>();
+    private Set<Long> peopleDisliked = new HashSet<Long>();
+    //TODO Set<Long>
 
 	public Comment() {
 	}
@@ -57,7 +64,6 @@ public final class Comment implements Comparable<Comment> {
 	}
 
 	// ::::::::: constructor to be used when loading an existing comment from db
-	// :::::::::
 	public Comment(long id, String content, int likesCount, int dislikesCount, long postId, long userId,
 			Timestamp datetime, User sentBy) throws CommentException {
 		this(content, postId, userId, sentBy);

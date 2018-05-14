@@ -9,6 +9,7 @@
    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
     <context:annotation-config/>
+
         <bean id = "abstractDao" class = "com.example.model.DBManagement.AbstractDao"></bean>
         <bean id = "categoryDao" class = "com.example.model.DBManagement.CategoryDao"></bean>
         <bean id = "commentDao" class = "com.example.model.DBManagement.CommentDao"></bean>
@@ -22,5 +23,7 @@
         <bean id = "multimedia" class = "com.example.model.Multimedia"></bean>
         <bean id = "post" class = "com.example.model.Post"></bean>
         <bean id = "user" class = "com.example.model.User"></bean>
+        <bean id = "commRepository" class = "com.example.model.repositories.CommRepository"></bean>
+        <bean id = "commService" class = "com.example.model.services.CommService"></bean>
 
 </beans>

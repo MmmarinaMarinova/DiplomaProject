@@ -2,25 +2,32 @@ package com.example.model;
 
 import com.example.model.exceptions.*;
 
+import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+@Entity
+@Table(name = "locations")
 public class Location {
 	private final static int MAX_LENGTH = 255;
 	private final static int MIN_LENGTH = 5;
 	private final static String COORDINATES_PATTERN = "^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)$\n";
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	private String latitude;
 	private String longtitude;
 	private String shortDescription;
 	private String description;
 	private String locationName;
-	private ConcurrentSkipListSet<User> peopleVisited;
-	private HashSet<Multimedia> pictures = new HashSet<Multimedia>();
+	@OneToMany(targetEntity = User.class)
+	private Set<User> peopleVisited; //concurrentSkipListSet
+	@OneToMany(targetEntity = Multimedia.class)
+	private Set<Multimedia> pictures = new HashSet<Multimedia>();
 
 	public Location() {
 	}

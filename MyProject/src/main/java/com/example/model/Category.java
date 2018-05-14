@@ -2,8 +2,14 @@ package com.example.model;
 
 import com.example.model.exceptions.*;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "categories")
 public class Category {
 	private final static int MAX_LENGTH = 255;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	private String name;
 

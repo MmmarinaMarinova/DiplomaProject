@@ -1,9 +1,16 @@
 package com.example.model;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "multimedia")
 public class Multimedia {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String url;
     private boolean isVideo;
+    @OneToOne
     private Post post;
 
     public Multimedia() {

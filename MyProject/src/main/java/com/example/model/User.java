@@ -2,21 +2,22 @@ package com.example.model;
 
 import com.example.model.DBManagement.MultimediaDao;
 import com.example.model.exceptions.*;
+import com.example.model.services.UserService;
+
+import javax.persistence.*;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
-public final class User {
-	// ::::::::: main object characteristics :::::::::
+@Entity
+@Table(name="users")
+public class User {
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long userId = 0;
+
 	@Size(min = MIN_USERNAME_LENGTH, max = MAX_USERNAME_LENGTH)
 	@Pattern(regexp = USERNAME_VALIDATION_REGEX, message = "Username must be at least " + MIN_USERNAME_LENGTH
 			+ " characters long and must contain only letters, digits, hyphens and underscores! ")
@@ -28,12 +29,18 @@ public final class User {
 	@Pattern(regexp = EMAIL_VALIDATION_REGEX, message = "Invalid email address")
 	private String email = null;
 	private String description = "";
+	@OneToOne
 	private Multimedia profilePic = null;
-	private HashSet<User> followers = new HashSet<User>();
-	private HashSet<User> following = new HashSet<User>();
-	private TreeMap<Timestamp, Location> visitedLocations = null; // order by date and time of visit required
-	private HashSet<Location> wishlist = null;
-	private TreeSet<Post> posts = new TreeSet<>(); 
+	@OneToMany(targetEntity = User.class)
+	private Set<User> followers = new HashSet<User>();
+	@OneToMany(targetEntity = User.class)
+	private Set<User> following = new HashSet<User>();
+	@OneToMany(targetEntity = Location.class)
+	private Map<Timestamp, Location> visitedLocations = null; // order by date and time of visit required
+	@OneToMany(targetEntity = Location.class)
+	private Set<Location> wishlist = null;
+	@OneToMany(targetEntity = Post.class)
+	private Set<Post> posts = new TreeSet<>();
 
 	// ::::::::: additional object characteristics :::::::::
 	private static final int MIN_USERNAME_LENGTH = 5;
@@ -107,7 +114,9 @@ public final class User {
 	}
 
 	public SortedMap<Timestamp, Location> getVisitedLocations() {
-		return Collections.unmodifiableSortedMap(this.visitedLocations);
+		//return UserService.getSortedVisitedLocations(this.userId);
+		//return Collections.unmodifiableSortedMap(this.visitedLocations);
+		return null;
 	}
 
 	public Set<Location> getWishlist() {
@@ -115,7 +124,8 @@ public final class User {
 	}
 
 	public SortedSet<Post> getPosts() throws SQLException, PostException {
-		return Collections.unmodifiableSortedSet(this.posts);
+		//return Collections.unmodifiableSortedSet(this.posts);
+		return null;
 	}
 
 	// ::::::::: mutators :::::::::

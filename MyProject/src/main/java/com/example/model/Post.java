@@ -1,7 +1,10 @@
 package com.example.model;
 
 import com.example.model.exceptions.*;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.Query;
 
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -9,25 +12,42 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+@Entity
+@Table(name = "posts")
 public class Post implements Comparable<Post> {
     private static final int MIN_LENGTH = 5;
     private static final int MAX_LENGTH = 255;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
+    @OneToOne
     private User user;
     private String description;
     private int likesCount;
     private int dislikesCount;
+    @OneToOne
     private Multimedia video;
     private Timestamp dateTime;
     private String dateTimeString;
+    @OneToOne
     private Location location;
-    private HashSet<Category> categories;
-    private HashSet<Tag> tags;
-    private HashSet<Multimedia> multimedia;
-    private HashSet<User> taggedPeople;
-    private TreeSet<Comment> comments;
-    private HashSet<Long> peopleLiked;
-    private HashSet<Long> peopleDisliked;
+    @OneToMany(targetEntity = Category.class)
+    private Set<Category> categories;
+    @OneToMany(targetEntity = Tag.class)
+    private Set<Tag> tags;
+    @OneToMany(targetEntity = Multimedia.class)
+    private Set<Multimedia> multimedia;
+    @OneToMany(targetEntity = User.class)
+    private Set<User> taggedPeople;
+    @OneToMany(targetEntity = Comment.class)
+    private Set<Comment> comments; //treeset
+    @OneToMany
+    private Set<Long> peopleLiked;
+    private Set<Long> peopleDisliked;
+    //TODO Set<Long>
+
+    public Post() {
+    }
 
     // constructor to be used when putting object in database
     public Post(User user, String description,Multimedia video, Location location, HashSet<Category> categories,
@@ -60,9 +80,6 @@ public class Post implements Comparable<Post> {
     public Post(User user, long user_id, String description, int likes_count, int dislikes_count, Timestamp date_time,
                 long location_id) throws PostException {
         this.dateTimeString= new SimpleDateFormat("MM/dd/yyyy HH:mm").format(date_time);
-    }
-
-    public Post() {
     }
 
     public Multimedia getVideo() {
@@ -179,7 +196,7 @@ public class Post implements Comparable<Post> {
         this.categories = categories;
     }
 
-    public HashSet<Multimedia> getMultimedia() {
+    public Set<Multimedia> getMultimedia() {
         return  this.multimedia;
     }
 
