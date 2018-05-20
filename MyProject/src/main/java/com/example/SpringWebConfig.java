@@ -4,6 +4,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -38,6 +39,7 @@ import org.springframework.web.servlet.view.JstlView;
 import javax.persistence.EntityManagerFactory;
 
 @Configuration
+@EnableAutoConfiguration
 @EnableJpaRepositories
 @EnableTransactionManagement
 @EnableWebMvc
@@ -109,8 +111,8 @@ public class SpringWebConfig extends WebMvcConfigurerAdapter {
 		DataSource dataSource = new DataSource();
 		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
 		dataSource.setUrl("jdbc:mysql://localhost:3306/travellerdb");
-		dataSource.setUsername( "root" );
-		dataSource.setPassword( "poncho" );
+		dataSource.setUsername("root");
+		dataSource.setPassword("poncho");
 		return dataSource;
 	}
 
@@ -130,7 +132,7 @@ public class SpringWebConfig extends WebMvcConfigurerAdapter {
 
 	Properties additionalProperties() {
 		Properties properties = new Properties();
-		properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+		properties.setProperty("hibernate.hbm2ddl.auto", "update");
 		properties.setProperty(
 				"hibernate.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect");
 

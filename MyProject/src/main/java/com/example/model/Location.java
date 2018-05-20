@@ -14,20 +14,26 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class Location {
 	private final static int MAX_LENGTH = 255;
 	private final static int MIN_LENGTH = 5;
-	private final static String COORDINATES_PATTERN = "^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)$\n";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	private String latitude;
 	private String longtitude;
+	//TODO REMOVE THIS FIELD AND MOVE METHOD SETSHORTDESCRIPTION TO SERVICE CLASS
 	private String shortDescription;
 	private String description;
 	private String locationName;
-	@OneToMany(targetEntity = User.class)
+	@ManyToMany
+	@JoinTable(name="VISITED_LOCATIONS",
+			joinColumns={@JoinColumn(name="LOCATION_ID")},
+			inverseJoinColumns={@JoinColumn(name="USER_ID")})
+	//TODO DELETE ID COLUMN FROM VISITED_LOCATIONS TABLE IN DB
+	//TODO SAVE AND UPDATE METHODS SHOULD PUT TIMESTAMP ALSO
 	private Set<User> peopleVisited; //concurrentSkipListSet
-	@OneToMany(targetEntity = Multimedia.class)
-	private Set<Multimedia> pictures = new HashSet<Multimedia>();
+	@OneToMany
+	@JoinColumn(name = "MULTIMEDIA_ID")
+	private Set<Multimedia> pictures;
 
 	public Location() {
 	}

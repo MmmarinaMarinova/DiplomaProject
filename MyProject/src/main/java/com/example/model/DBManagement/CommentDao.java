@@ -27,14 +27,14 @@ public final class CommentDao extends AbstractDao { // used to operate with tabl
 				"insert into comments (content, post_id, user_id, date_time) values (?, ?, ?, now());",
 				Statement.RETURN_GENERATED_KEYS);) {
 			ps.setString(1, c.getContent());
-			ps.setLong(2, c.getPostId());
+			ps.setLong(2, c.getPost().getId());
 			ps.setLong(3, sentBy.getUserId());
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();
 			rs.next();
 			c.setId(rs.getLong(1));	
 			// !!! insert in post POJO comments collection required:
-			postDao.addComment(postDao.getPostById(c.getPostId()), c);
+			postDao.addComment(postDao.getPostById(c.getPost().getId()), c);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -46,7 +46,7 @@ public final class CommentDao extends AbstractDao { // used to operate with tabl
 				Statement.RETURN_GENERATED_KEYS);) {
 			ps.setLong(1, c.getId());
 			ps.setString(2, c.getContent());
-			ps.setLong(3, c.getPostId());
+			ps.setLong(3, c.getPost().getId());
 			ps.setLong(4, c.getUserId());
 			ps.setTimestamp(5, c.getDatetime());
 			ps.executeUpdate();
@@ -54,7 +54,7 @@ public final class CommentDao extends AbstractDao { // used to operate with tabl
 			rs.next();
 			c.setId(rs.getLong(1));
 			// !!! delete from post POJO comments collection required:
-			postDao.deleteComment(postDao.getPostById(c.getPostId()), c);
+			postDao.deleteComment(postDao.getPostById(c.getPost().getId()), c);
 		}
 	}
 
@@ -70,8 +70,9 @@ public final class CommentDao extends AbstractDao { // used to operate with tabl
 				c = new Comment(rs.getLong("comment_id"), rs.getString("content"), rs.getInt("likes_counter"),
 						rs.getInt("dislikes_counter"), rs.getLong("post_id"), rs.getLong("user_id"),
 						rs.getTimestamp("date_time"));
-				c.setPeopleLiked(this.getAllPeopleLiked(c));
-				c.setPeopleDisliked(this.getAllPeopleDisliked(c));
+				//c.setPeopleLiked(this.getAllPeopleLiked(c));
+				//c.setPeopleDisliked(this.getAllPeopleDisliked(c));
+				//TODO set people liked
 			}
 			return c;
 		}
@@ -90,8 +91,9 @@ public final class CommentDao extends AbstractDao { // used to operate with tabl
 				Comment comment = new Comment(rs.getLong("comment_id"), rs.getString("content"), rs.getInt("likes_counter"),
 						rs.getInt("dislikes_counter"), p.getId(), rs.getLong("user_id"),
 						rs.getTimestamp("date_time"),sentBy);
-				  comment.setPeopleDisliked(this.getAllPeopleDisliked(comment));
-		            comment.setPeopleLiked(getAllPeopleLiked(comment));
+				  //comment.setPeopleDisliked(this.getAllPeopleDisliked(comment));
+		            //comment.setPeopleLiked(getAllPeopleLiked(comment));
+				//TODO SET PEOPLE LIKED
 					comments.add(comment);
 			}
 			return comments;

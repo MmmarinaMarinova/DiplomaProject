@@ -7,6 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.example.model.Post;
+import com.example.model.services.CommService;
+import com.example.model.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,11 +31,9 @@ import com.example.model.exceptions.UserException;
 @RestController
 public class CommentService {
 	@Autowired
-	UserDao userDao;
+	PostService postService;
 	@Autowired
-	CommentDao commentDao;
-	@Autowired
-	PostDao postDao;
+	CommService commService;
 
 	@RequestMapping(value = "/postComment/{postId}/{content}", method = RequestMethod.POST)
 	@ResponseBody
@@ -42,21 +43,11 @@ public class CommentService {
 			resp.sendRedirect("login");
 		}
 		User sentBy = (User) session.getAttribute("user");
-		try {
-			Comment comment = new Comment(content, postId, sentBy.getUserId(), sentBy);
-			commentDao.insertComment(comment, sentBy);
-			resp.setStatus(200);
-			return commentDao.getCommentById(comment.getId());
-		} catch (PostException e) {
-			e.printStackTrace();
-		} catch (UserException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (CommentException e) {
-			e.printStackTrace();
-		}
-		return null;
+		Post post = postService.findOne(postId);
+		Comment comment = new Comment(content, post, sentBy);
+		comment = commService.saveComment(comment);
+		resp.setStatus(200);
+		return comment;
 	}
 
 }

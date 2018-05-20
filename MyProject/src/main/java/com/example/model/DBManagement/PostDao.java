@@ -263,8 +263,9 @@ public class PostDao extends AbstractDao{
             post.setTaggedPeople(userDao.getAllTaggedUsersForPost(post));
             post.setVideo(multimediaDao.getVideoForPost(post));
             post.setTags(tagDao.getTagsForPost(post));
-            post.setPeopleDisliked(getAllPeopleDisliked(post));
-            post.setPeopleLiked(getAllPeopleLiked(post));
+            //post.setPeopleDisliked(getAllPeopleDisliked(post));
+            //post.setPeopleLiked(getAllPeopleLiked(post));
+			//TODO set people liked and disliked
             posts.add(post);
         }
         return posts;

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.example.model.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +24,7 @@ import com.example.model.exceptions.UserException;
 @Controller
 public class FollowService {
 	@Autowired
-	UserDao userDao;
+	UserService userService;
 
 	@RequestMapping(value = "/follow/{userId}", method = RequestMethod.POST)
 	@ResponseBody
@@ -33,20 +34,9 @@ public class FollowService {
 			resp.sendRedirect("login");
 		}
 		User follower = (User) session.getAttribute("user");
-		User followed = null;
-		try {
-			followed = userDao.getUserById(userId);
-			userDao.follow(follower, followed);
-			userDao.setFollowers(followed);
-			userDao.setFollowing(followed);
-			resp.setStatus(200);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (PostException e) {
-			e.printStackTrace();
-		} catch (UserException e) {
-			e.printStackTrace();
-		}
+		User followed = userService.findById(userId);
+		userService.follow(follower, followed);
+		resp.setStatus(200);
 		Integer[] sizes = new Integer[2];
 		sizes[0] = followed.getFollowers().size();
 		sizes[1] = followed.getFollowing().size();
@@ -59,26 +49,13 @@ public class FollowService {
 		if (session.getAttribute("user") == null || session.getAttribute("logged").equals(false)) {
 			resp.sendRedirect("login");
 		}
-		User follower = (User) session.getAttribute("user");
-		User followed = null;
-		try {
-			followed = userDao.getUserById(userId);
-			userDao.setFollowers(followed);
-			userDao.setFollowing(followed);
-			if (follower != null & followed != null) {
-				userDao.unfollow(follower, followed);
-				resp.setStatus(200);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (PostException e) {
-			e.printStackTrace();
-		} catch (UserException e) {
-			e.printStackTrace();
-		}
+		User unfollower = (User) session.getAttribute("user");
+		User unfollowed = userService.findById(userId);
+		userService.unfollow(unfollower, unfollowed);
+		resp.setStatus(200);
 		Integer[] sizes = new Integer[2];
-		sizes[0] = followed.getFollowers().size();
-		sizes[1] = followed.getFollowing().size();
+		sizes[0] = unfollowed.getFollowers().size();
+		sizes[1] = unfollowed.getFollowing().size();
 		return sizes;
 	}
 

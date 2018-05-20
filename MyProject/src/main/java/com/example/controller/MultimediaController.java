@@ -6,6 +6,7 @@ import com.example.model.Multimedia;
 import com.example.model.exceptions.PostException;
 import com.example.model.exceptions.UserException;
 
+import com.example.model.services.MultimediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +28,7 @@ import java.sql.SQLException;
 @Controller
 public class MultimediaController {
 	@Autowired
-	MultimediaDao multimediaDao;
+	MultimediaService multimediaService;
 
 	@RequestMapping(value = "/getVideo/{url}", method = RequestMethod.GET)
 	public void getUploadedImagesForm(@PathVariable("url") String tempUrl, HttpSession session,
@@ -54,7 +55,7 @@ public class MultimediaController {
 			if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
 				resp.sendRedirect("login");
 			}
-			Multimedia multimedia = multimediaDao.getMultimediaById(id);
+			Multimedia multimedia = multimediaService.findOne(id);
 			String url = multimedia.getUrl();
 			File tempImage = new File(
 					WebInitializer.LOCATION + WebInitializer.MULTIMEDIA_LOCATION + File.separator + url);
@@ -63,12 +64,6 @@ public class MultimediaController {
 			Files.copy(path, out);
 			out.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (PostException e) {
-			e.printStackTrace();
-		} catch (UserException e) {
 			e.printStackTrace();
 		}
 	}

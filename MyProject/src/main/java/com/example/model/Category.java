@@ -8,8 +8,9 @@ import javax.persistence.*;
 @Table(name = "categories")
 public class Category {
 	private final static int MAX_LENGTH = 255;
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 	private String name;
 

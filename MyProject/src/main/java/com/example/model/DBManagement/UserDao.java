@@ -51,19 +51,16 @@ public class UserDao extends AbstractDao {
 	}
 
 	// ::::::::: check if user exists ( to be used when users log in ) :::::::::
-	// to be modified - should check for username OR email !!!
-	// * TESTED *
-	public boolean existsUser(String username, String password) throws SQLException {
-		if (this.getConnection() == null) {
-			System.out.println("connection is null");
-		}
-		try (PreparedStatement ps = this.getConnection()
-				.prepareStatement("select count(*) as count from users where username = ? and password = ?;")) {
-			ps.setString(1, username);
-			ps.setString(2, password); 
-			ResultSet rs = ps.executeQuery();
-			rs.next();
-			return rs.getInt("count") > 0;
+			// to be modified - should check for username OR email !!!
+			// * TESTED *
+			public boolean existsUser(String username, String password) throws SQLException {
+				try (PreparedStatement ps = this.getConnection()
+						.prepareStatement("select count(*) as count from users where username = ? and password = ?;")) {
+					ps.setString(1, username);
+					ps.setString(2, password);
+					ResultSet rs = ps.executeQuery();
+					rs.next();
+					return rs.getInt("count") > 0;
 		}
 	}
 
@@ -215,12 +212,12 @@ public class UserDao extends AbstractDao {
 				post.setTaggedPeople(this.getAllTaggedUsersForPost(post));
 				post.setComments(commentDao.getCommentsForPost(post));
 				post.setTags(tagDao.getTagsForPost(post));
-				post.setPeopleLiked(postDao.getAllPeopleLiked(post));
-				post.setPeopleDisliked(postDao.getAllPeopleDisliked(post));
+				//post.setPeopleLiked(postDao.getAllPeopleLiked(post));
+				//post.setPeopleDisliked(postDao.getAllPeopleDisliked(post));
+				//TODO SET PEOPLE LIKED
 				posts.add(post);
 			}
 		}
-		System.out.println("::::::::::: FETCHED POSTS FOR USER: " + u.getUsername() + " : " + posts.size());
 		return posts;
 	}
 

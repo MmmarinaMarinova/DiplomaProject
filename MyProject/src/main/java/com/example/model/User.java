@@ -2,7 +2,6 @@ package com.example.model;
 
 import com.example.model.DBManagement.MultimediaDao;
 import com.example.model.exceptions.*;
-import com.example.model.services.UserService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
@@ -14,34 +13,6 @@ import java.util.*;
 @Entity
 @Table(name="users")
 public class User {
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long userId = 0;
-
-	@Size(min = MIN_USERNAME_LENGTH, max = MAX_USERNAME_LENGTH)
-	@Pattern(regexp = USERNAME_VALIDATION_REGEX, message = "Username must be at least " + MIN_USERNAME_LENGTH
-			+ " characters long and must contain only letters, digits, hyphens and underscores! ")
-	private String username = null;
-	@Pattern(regexp = PASSWORD_VALIDATION_REGEX, message = "Password must be at least " + MIN_PASSWORD_LENGTH
-			+ " characters long and must contain at least one lowercase character, at least one uppercase character and at least one non-alphabetic character!")
-	@Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH)
-	private String password = null;
-	@Pattern(regexp = EMAIL_VALIDATION_REGEX, message = "Invalid email address")
-	private String email = null;
-	private String description = "";
-	@OneToOne
-	private Multimedia profilePic = null;
-	@OneToMany(targetEntity = User.class)
-	private Set<User> followers = new HashSet<User>();
-	@OneToMany(targetEntity = User.class)
-	private Set<User> following = new HashSet<User>();
-	@OneToMany(targetEntity = Location.class)
-	private Map<Timestamp, Location> visitedLocations = null; // order by date and time of visit required
-	@OneToMany(targetEntity = Location.class)
-	private Set<Location> wishlist = null;
-	@OneToMany(targetEntity = Post.class)
-	private Set<Post> posts = new TreeSet<>();
-
 	// ::::::::: additional object characteristics :::::::::
 	private static final int MIN_USERNAME_LENGTH = 5;
 	private static final int MAX_USERNAME_LENGTH = 45;
@@ -50,6 +21,46 @@ public class User {
 	private static final String PASSWORD_VALIDATION_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*([0-9]|[\\W])).+$";
 	private static final String EMAIL_VALIDATION_REGEX = "^[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$";
 	private static final String USERNAME_VALIDATION_REGEX = "([A-Za-z0-9-_]+)";
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long userId;
+	@Size(min = MIN_USERNAME_LENGTH, max = MAX_USERNAME_LENGTH)
+	@Pattern(regexp = USERNAME_VALIDATION_REGEX, message = "Username must be at least " + MIN_USERNAME_LENGTH
+			+ " characters long and must contain only letters, digits, hyphens and underscores! ")
+	private String username;
+	@Pattern(regexp = PASSWORD_VALIDATION_REGEX, message = "Password must be at least " + MIN_PASSWORD_LENGTH
+			+ " characters long and must contain at least one lowercase character, at least one uppercase character" +
+			" and at least one non-alphabetic character!")
+	@Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH)
+	private String password;
+	@Pattern(regexp = EMAIL_VALIDATION_REGEX, message = "Invalid email address")
+	private String email;
+	private String description = "";
+	@OneToOne
+	private Multimedia profilePic;
+	@ManyToMany
+	@JoinTable(name = "USERS_FOLLOWERS", joinColumns = { @JoinColumn(name = "FOLLOWER_ID") },
+			inverseJoinColumns = { @JoinColumn(name = "FOLLOWED_ID") } )
+	private Set<User> followers = new HashSet<>();
+	@ManyToMany
+	@JoinTable(name = "USERS_FOLLOWERS", joinColumns = { @JoinColumn(name = "FOLLOWED_ID") },
+			inverseJoinColumns = { @JoinColumn(name = "FOLLOWER_ID") } )
+	private Set<User> following = new HashSet<>();
+	@ManyToMany
+	@JoinTable(name="VISITED_LOCATIONS",
+			joinColumns={@JoinColumn(name="USER_ID")},
+			inverseJoinColumns={@JoinColumn(name="LOCATION_ID")})
+	private Map<Timestamp, Location> visitedLocations; // order by date and time of visit required
+	@ManyToMany
+	@JoinTable(name="WISHLISTS",
+			joinColumns={@JoinColumn(name="USER_ID")},
+			inverseJoinColumns={@JoinColumn(name="LOCATION_ID")})
+	private Set<Location> wishlist;
+	@OneToMany(mappedBy = "user")
+	private Set<Post> posts; //treeset
+	//TODO many to many mappings
+
 
 	// ::::::::: constructor to be used for user registration :::::::::
 	public User(String username, String password, String email) throws UserException {
@@ -106,11 +117,11 @@ public class User {
 	}
 
 	public Set<User> getFollowers() {
-		return Collections.unmodifiableSet(this.followers);
+		return this.followers;
 	}
 
 	public Set<User> getFollowing() {
-		return Collections.unmodifiableSet(this.following);
+		return this.following;
 	}
 
 	public SortedMap<Timestamp, Location> getVisitedLocations() {
@@ -120,12 +131,11 @@ public class User {
 	}
 
 	public Set<Location> getWishlist() {
-		return Collections.unmodifiableSet(this.wishlist);
+		return this.wishlist;
 	}
 
-	public SortedSet<Post> getPosts() throws SQLException, PostException {
-		//return Collections.unmodifiableSortedSet(this.posts);
-		return null;
+	public Set<Post> getPosts() throws SQLException, PostException {
+		return this.posts;
 	}
 
 	// ::::::::: mutators :::::::::
@@ -141,11 +151,11 @@ public class User {
 		if (username.length() >= MIN_USERNAME_LENGTH && username.matches(USERNAME_VALIDATION_REGEX)) {
 			if (username.length() <= MAX_USERNAME_LENGTH) {
 				this.username = username;
-	} else {
-		throw new UserException("Username too long!");
-	}
-} else {
-		throw new UserException("Username must be at least " + MIN_USERNAME_LENGTH
+			} else {
+				throw new UserException("Username too long!");
+			}
+		} else {
+			throw new UserException("Username must be at least " + MIN_USERNAME_LENGTH
 		+ " characters long and must contain only letters, digits, hyphens and underscores! ");
 		}
 	}
@@ -183,7 +193,7 @@ public class User {
 		this.profilePic = profilePic;
 	}
 
-	public void setFollowers(HashSet<User> followers) {
+	public void setFollowers(Set<User> followers) {
 		this.followers = followers;
 	}
 

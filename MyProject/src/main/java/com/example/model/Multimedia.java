@@ -6,11 +6,13 @@ import javax.persistence.*;
 @Table(name = "multimedia")
 public class Multimedia {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String url;
     private boolean isVideo;
-    @OneToOne
+    //todo why multimedia is not in post?!?!?!?
+    @ManyToOne
+    @JoinColumn(name = "POST_ID") //join  column is used for declaring the foreign key
     private Post post;
 
     public Multimedia() {

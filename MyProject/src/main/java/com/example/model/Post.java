@@ -1,12 +1,13 @@
 package com.example.model;
 
 import com.example.model.exceptions.*;
-import org.springframework.data.jpa.repository.*;
-import org.springframework.data.jpa.repository.Query;
 
 import javax.persistence.*;
+
 import java.sql.Timestamp;
+
 import java.text.SimpleDateFormat;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,12 +18,16 @@ import java.util.TreeSet;
 public class Post implements Comparable<Post> {
     private static final int MIN_LENGTH = 5;
     private static final int MAX_LENGTH = 255;
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @OneToOne
+
+    @ManyToOne
+    @JoinColumn(name = "USER_ID")
     private User user;
     private String description;
+    //todo maybe remove likes and dislikes count(get them from peopleliked.size)
     private int likesCount;
     private int dislikesCount;
     @OneToOne
@@ -31,20 +36,36 @@ public class Post implements Comparable<Post> {
     private String dateTimeString;
     @OneToOne
     private Location location;
-    @OneToMany(targetEntity = Category.class)
+    @ManyToMany
+    @JoinTable(name="POSTS_CATEGORIES",
+            joinColumns={@JoinColumn(name="POST_ID")},
+            inverseJoinColumns={@JoinColumn(name="CATEGORY_ID")})
     private Set<Category> categories;
-    @OneToMany(targetEntity = Tag.class)
+    @ManyToMany
+    @JoinTable(name="POSTS_TAGS",
+            joinColumns={@JoinColumn(name="POST_ID")},
+            inverseJoinColumns={@JoinColumn(name="TAG_ID")})
     private Set<Tag> tags;
-    @OneToMany(targetEntity = Multimedia.class)
+    @OneToMany(mappedBy = "post")
     private Set<Multimedia> multimedia;
-    @OneToMany(targetEntity = User.class)
+    @ManyToMany
+    @JoinTable(name="TAGGED_USERS",
+            joinColumns={@JoinColumn(name="POST_ID")},
+            inverseJoinColumns={@JoinColumn(name="USER_ID")})
     private Set<User> taggedPeople;
-    @OneToMany(targetEntity = Comment.class)
+    @OneToMany(mappedBy = "post")
     private Set<Comment> comments; //treeset
-    @OneToMany
-    private Set<Long> peopleLiked;
-    private Set<Long> peopleDisliked;
-    //TODO Set<Long>
+    @ManyToMany
+    @JoinTable(name="POSTS_REACTIONS",
+            joinColumns={@JoinColumn(name="POST_ID")},
+            inverseJoinColumns={@JoinColumn(name="USER_ID")})
+    private Set<User> peopleLiked;
+    @ManyToMany
+    @JoinTable(name="POSTS_REACTIONS",
+            joinColumns={@JoinColumn(name="POST_ID")},
+            inverseJoinColumns={@JoinColumn(name="USER_ID")})
+    private Set<User> peopleDisliked;
+    //TODO many to many mappings and people liked and disliked tables (save and update methods add reaction type to table)
 
     public Post() {
     }
@@ -92,7 +113,7 @@ public class Post implements Comparable<Post> {
         }
     }
 
-    public Set<Long> getPeopleLiked() {
+    public Set<User> getPeopleLiked() {
         if(this.peopleLiked==null){
             this.peopleLiked=new HashSet<>();
         }
@@ -100,18 +121,18 @@ public class Post implements Comparable<Post> {
         return Collections.unmodifiableSet(this.peopleLiked);
     }
 
-    public void setPeopleLiked(HashSet<Long> peopleLiked) {
+    public void setPeopleLiked(Set<User> peopleLiked) {
         this.peopleLiked = peopleLiked;
     }
 
-    public Set<Long> getPeopleDisliked() {
+    public Set<User> getPeopleDisliked() {
         if(this.peopleDisliked==null){
             this.peopleDisliked=new HashSet<>();
         }
         return Collections.unmodifiableSet(this.peopleDisliked);
     }
 
-    public void setPeopleDisliked(HashSet<Long> peopleDisliked) {
+    public void setPeopleDisliked(Set<User> peopleDisliked) {
         this.peopleDisliked = peopleDisliked;
     }
 
@@ -242,6 +263,12 @@ public class Post implements Comparable<Post> {
         return result;
     }
 
+    @Override
+    public int compareTo(Post o) {
+        return o.dateTime.compareTo(this.dateTime);
+    }
+
+    ///////////////TODO METHODS TO BE MOVED TO SERVICE CLASS
     public void deleteMultimedia(Multimedia multimedia) {
         if (multimedia != null) {
             this.multimedia.remove(multimedia);
@@ -272,36 +299,31 @@ public class Post implements Comparable<Post> {
         }
     }
 
-    @Override
-    public int compareTo(Post o) {
-        return o.dateTime.compareTo(this.dateTime);
-    }
-
-    public void addPersonLiked(long userId) {
+    public void addPersonLiked(User user) {
         if(this.peopleLiked==null){
             this.peopleLiked=new HashSet<>();
         }
-        this.peopleLiked.add(userId);
+        this.peopleLiked.add(user);
     }
 
-    public void removePersonLiked(long userId) {
+    public void removePersonLiked(User user) {
         if(this.peopleLiked==null){
             this.peopleLiked=new HashSet<>();
         }
-        this.peopleLiked.remove(userId);
+        this.peopleLiked.remove(user);
     }
 
-    public void removePersonDisliked(long userId) {
+    public void removePersonDisliked(User user) {
         if(this.peopleDisliked==null){
             this.peopleDisliked=new HashSet<>();
         }
-        this.peopleDisliked.remove(userId);
+        this.peopleDisliked.remove(user);
     }
 
-    public void addPersonDisliked(long userId) {
+    public void addPersonDisliked(User user) {
         if(this.peopleDisliked==null){
             this.peopleDisliked=new HashSet<>();
         }
-        this.peopleDisliked.add(userId);
+        this.peopleDisliked.add(user);
     }
 }

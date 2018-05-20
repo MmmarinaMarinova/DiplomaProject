@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.example.model.Utilities.NewsfeedType;
+import com.example.model.services.LocationService;
+import com.example.model.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +43,11 @@ public class ExploreController {
 	@Autowired
 	UserDao userDao;
 	@Autowired
+	UserService userService;
+	@Autowired
 	LocationDao locationDao;
+	@Autowired
+	LocationService locationService;
 	@Autowired
 	MultimediaDao multimediaDao;
 	@Autowired
@@ -72,25 +79,8 @@ public class ExploreController {
 		if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
 			return "login";
 		}
-		TreeSet<Post> newsfeedPosts = new TreeSet<Post>(
-				(p1, p2) -> (p2.getPeopleLiked().size()- p1.getPeopleLiked().size()) != 0 ? (p2.getPeopleLiked().size() - p1.getPeopleLiked().size())
-						: (p2.getDateTime().compareTo(p1.getDateTime())));
 		User currentUser = (User) session.getAttribute("user");
-		try {
-			userDao.setFollowing(currentUser);
-			for (User followed : currentUser.getFollowing()) {
-				System.out.println(" :::::::::: Following: " + followed.getUsername());
-				userDao.setFollowers(followed);
-				userDao.setFollowing(followed);
-				userDao.setProfilePic(followed);
-				userDao.setPosts(followed);
-				newsfeedPosts.addAll(userDao.getPosts(followed));
-			}
-		} catch (UserException | SQLException | PostException | LocationException | CategoryException
-				| CommentException e) {
-			request.setAttribute("errorMessage", e.getMessage());
-			return "error";
-		}
+		TreeSet<Post> newsfeedPosts = userService.findNewsFeed(currentUser, NewsfeedType.BY_MOST_POPULAR);
 		session.setAttribute("newsfeedPosts", newsfeedPosts);
 		return "newsfeed";
 	}
@@ -161,13 +151,8 @@ public class ExploreController {
 		if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
 			return "login";
 		}
-		try {
-			Location selectedLocation = locationDao.getLocationById((id));
-			session.setAttribute("location", selectedLocation);
-		} catch (SQLException | LocationException | CategoryException e) {
-			request.setAttribute("errorMessage", e.getMessage());
-			return "error";
-		}
+		Location selectedLocation = locationService.findById(id);
+		session.setAttribute("location", selectedLocation);
 		return "location";
 	}
 

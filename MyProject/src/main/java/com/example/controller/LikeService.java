@@ -8,6 +8,8 @@ import com.example.model.User;
 import com.example.model.exceptions.CommentException;
 import com.example.model.exceptions.PostException;
 import com.example.model.exceptions.UserException;
+import com.example.model.services.CommService;
+import com.example.model.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,7 +29,11 @@ public class LikeService {
 	@Autowired
 	PostDao postDao;
 	@Autowired
+	PostService postService;
+	@Autowired
 	CommentDao commentDao;
+	@Autowired
+	CommService commService;
 
 	@RequestMapping(value = "/like/{postId}", method = RequestMethod.POST)
 	@ResponseBody
@@ -38,10 +44,10 @@ public class LikeService {
 		}
 		Post post = null;
 		try {
-			post = postDao.getPostById(postId);
+			post = postService.findOne(postId);
 			long userId = ((User) session.getAttribute("user")).getUserId();
-			if (postDao.existsReaction(postId, userId)) {
-				postDao.updateReaction(true, post.getId(), ((User) session.getAttribute("user")).getUserId());
+			if (postService.existsReaction(postId, userId)) {
+				postService.updateReaction(true, post.getId(), ((User) session.getAttribute("user")).getUserId());
 				post.addPersonLiked(userId);
 				post.removePersonDisliked(userId);
 				resp.setStatus(200);

@@ -5,12 +5,13 @@ import com.amdelamar.jhash.algorithms.Type;
 import com.amdelamar.jhash.exception.BadOperationException;
 import com.amdelamar.jhash.exception.InvalidHashException;
 import com.example.WebInitializer;
-import com.example.model.Category;
+import com.example.model.*;
 import com.example.model.DBManagement.*;
-import com.example.model.Multimedia;
 
-import com.example.model.User;
 import com.example.model.exceptions.*;
+import com.example.model.repositories.TagRepository;
+import com.example.model.repositories.UserRepository;
+import com.example.model.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,17 +46,17 @@ import java.util.Set;
 @Controller
 public class UserController {
 	@Autowired
-	UserDao userDao;
-	@Autowired
-	MultimediaDao multimediaDao;
-	@Autowired
 	ServletContext servletContext;
 	@Autowired
-	TagDao tagDao;
+	MultimediaService multimediaService;
 	@Autowired
-	CategoryDao categoryDao;
+	TagService tagService;
 	@Autowired
-	LocationDao locationDao;
+	CategoryService categoryService;
+	@Autowired
+	LocationService locationService;
+	@Autowired
+	UserService userService;
 
 	@RequestMapping(value = "*", method = RequestMethod.GET)
 		public String getIndex(HttpSession session) {
@@ -79,40 +80,28 @@ public class UserController {
 			return "login";
 		}
 		try {
-			User user = userDao.getUserByUsername(username);
+			User user = userService.findByUsername(username);
 			if (user != null) {
 				if (Hash.verify(password, user.getPassword())) {
 					session.setAttribute("user", user);
 					session.setAttribute("logged", true);
 					request.setAttribute("isValidData", true);
-					HashSet<String> usernames = userDao.getAllUsernames();
-					for (String name : usernames) {
-						System.out.println(name);
-					}
-					HashSet<String> tags = tagDao.getAllTags();
-					for (String tag : tags) {
-						System.out.println(tag);
-					}
-					HashMap<String, Category> categories = categoryDao.getAllCategories();
-					for (Category category : categories.values()) {
-						System.out.println(category.getId());
-						System.out.println(category.getName());
-					}
-					Set<String> categoryNames = categories.keySet();
-					HashSet<String> locationNames = locationDao.getAllLocationNames();
-					servletContext.setAttribute("locations", locationNames);
+					HashSet<String> usernames = userService.findAllUsernames();
+					HashSet<Tag> tags = tagService.findAll();
+					HashSet<Category> categories = categoryService.findAll();
+					HashSet<Location> locations = locationService.findAll();
+					servletContext.setAttribute("locations", locations);
 					servletContext.setAttribute("usernames", usernames);
 					servletContext.setAttribute("tags", tags);
 					servletContext.setAttribute("categories", categories);
-					servletContext.setAttribute("categoryNames", categoryNames);
+					servletContext.setAttribute("categoryNames", categories);
 					return "redirect:/showPassport/" + user.getUserId();
 				}
 			} else {
 				request.setAttribute("isValidData", false);
 				return "login";
 			}
-		} catch (SQLException | CommentException | PostException | LocationException | UserException | CategoryException
-				| NoSuchAlgorithmException | BadOperationException | InvalidHashException e) {
+		} catch ( NoSuchAlgorithmException | BadOperationException | InvalidHashException e) {
 			e.printStackTrace();
 			return "login";
 		}
@@ -131,42 +120,36 @@ public class UserController {
 		String pass2 = request.getParameter("pass2");
 		String email = request.getParameter("email");
 		try {
-		User test = new User(username, pass, email); //test if given data is correct
-		if (pass != null && pass.equals(pass2)) {
-				if (!userDao.existsUsername(username)) {
-					User user = new User(username, Hash.create(pass, Type.BCRYPT), email);
-					userDao.insertUser(user);
-					session.setAttribute("user", user);
-					session.setAttribute("logged", true);
-					return "redirect:/showPassport/" + user.getUserId();
-				} else {
-					System.out.println("Vlizash li TUKA weeee");
-
-					return "register";
-				}
-		} else {
-			request.setAttribute("doPasswordsMatch", false);
-			return "register";
-		}
-			} catch (SQLException | NoSuchAlgorithmException e) {
-				e.printStackTrace();
-				return "register";
-			} catch (UserException | BadOperationException e) {
-				System.out.println("Vlizash li weeee");
-				if(e.getMessage().contains("Username")) {
-					System.out.println("VLIZA PRI USERNAME");
-					request.setAttribute("isValidUsername", false);
-				} 
-				if(e.getMessage().contains("e-mail")) {
-					System.out.println("VLIZA PRI EMAIL");
-					request.setAttribute("isValidEmail", false);
-				}
-				if(e.getMessage().contains("Password")) {
-					System.out.println("VLIZA PRI PASSWORD");
-					request.setAttribute("isValidPassword", false);
-				}
+			User test = new User(username, pass, email); //test if given data is correct
+			if (pass != null && pass.equals(pass2)) {
+					if (!userService.existsUsername(username)) {
+						User user = new User(username, Hash.create(pass, Type.BCRYPT), email);
+						userService.save(user);
+						session.setAttribute("user", user);
+						session.setAttribute("logged", true);
+						return "redirect:/showPassport/" + user.getUserId();
+					} else {
+						return "register";
+					}
+			} else {
+				request.setAttribute("doPasswordsMatch", false);
 				return "register";
 			}
+		} catch ( NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return "register";
+		} catch (UserException | BadOperationException e) {
+			if(e.getMessage().contains("Username")) {
+				request.setAttribute("isValidUsername", false);
+			}
+			if(e.getMessage().contains("e-mail")) {
+				request.setAttribute("isValidEmail", false);
+			}
+			if(e.getMessage().contains("Password")) {
+				request.setAttribute("isValidPassword", false);
+			}
+			return "register";
+		}
 	}
 
 	@RequestMapping(value = "/logout", method = RequestMethod.GET)
@@ -201,11 +184,7 @@ public class UserController {
 			return "login";
 		}
 		String newDescription = request.getParameter("descriptionTxt");
-		try {
-			userDao.changeDescription((User) session.getAttribute("user"), newDescription);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		userService.updateDescription((User) session.getAttribute("user"), newDescription);
 		return "settings";
 	}
 
@@ -227,12 +206,7 @@ public class UserController {
 		if (result.hasErrors()) {
 			return "settings";
 		} else {
-			try {
-				userDao.changeEmail((User) session.getAttribute("user"), email);
-			} catch (UserException | SQLException e) {
-				request.setAttribute("errorMessage", e.getMessage());
-				return "error";
-			}
+			userService.updateEmail((User) session.getAttribute("user"), email);
 		}
 		return "settings";
 	}
@@ -279,15 +253,11 @@ public class UserController {
 			File f = new File(WebInitializer.LOCATION + WebInitializer.AVATAR_LOCATION + File.separator + avatarUrl);
 			file.transferTo(f);
 			Multimedia newAvatar = new Multimedia(avatarUrl, false);
-			multimediaDao.changeAvatar(user, newAvatar); // insert in multimedia table and UPDATE USER HAVE THE NEWLY
-															// INSERTED AVATAR
+			userService.updateProfilePic(user, newAvatar); // insert in multimedia table and UPDATE USER HAVE THE NEWLY
+			// INSERTED AVATAR
 			// insert in user the new avatar
 			session.setAttribute("avatar", avatarUrl);
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (MultimediaException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return "settings";
@@ -305,12 +275,11 @@ public class UserController {
 			//TODO RETURN ERROR MESSAGE
 			return "settings";
 		} else {
-			// System.out.println(newEmail==null);
 			User user=(User)session.getAttribute("user");
 			if(Hash.verify(oldPassword,user.getPassword())){
 				if(newPassword.equals(confirmPassword)){
 					String newPass=Hash.create(newPassword, Type.BCRYPT);
-					userDao.changePassword(user, newPass);
+					userService.updatePassword(user, newPass);
 				}
 			}
 		}

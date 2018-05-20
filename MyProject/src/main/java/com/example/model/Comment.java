@@ -1,7 +1,6 @@
 package com.example.model;
 
 import com.example.model.exceptions.*;
-import org.hibernate.validator.constraints.Range;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -12,42 +11,53 @@ import java.util.Set;
 
 @Entity
 @Table(name = "comments")
-public final class Comment implements Comparable<Comment> {
+public class Comment implements Comparable<Comment> {
+	private static final int MAX_CONTENT_LENGTH = 500;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id = 0;
-	private String content = null;
+	private long id;
+	private String content;
+	//todo maybe remove likes and dislikes count -> can take them from people liked.size
 	private int likesCount = 0;
 	private int dislikesCount = 0;
-	private long postId = 0;
-	private long userId = 0;
-	private Timestamp datetime = null;
-	private String datetimeString = null; 
-	
-	private static final int MAX_CONTENT_LENGTH = 500;
 	@ManyToOne
-	private User sentBy = null;
-	@OneToMany(targetEntity = Long.class)
-    private Set<Long> peopleLiked = new HashSet<Long>();
-    private Set<Long> peopleDisliked = new HashSet<Long>();
-    //TODO Set<Long>
+	@JoinColumn(name = "POST_ID")
+	private Post post;
+	@ManyToOne
+	@JoinColumn(name = "USER_ID")
+	private User sentBy;
+	//private long userId = 0;
+	private Timestamp datetime;
+	//todo string is not needed since we can have method in service class that returns it
+	private String datetimeString;
+	@ManyToMany
+	@JoinTable(name="COMMENTS_REACTIONS",
+			joinColumns={@JoinColumn(name="COMMENT_ID")},
+			inverseJoinColumns={@JoinColumn(name="USER_ID")}) //LIKE REACTION = TRUE
+    private Set<User> peopleLiked;
+	@ManyToMany
+	@JoinTable(name="COMMENTS_REACTIONS",
+			joinColumns={@JoinColumn(name="COMMENT_ID")},
+			inverseJoinColumns={@JoinColumn(name="USER_ID")}) //DISLIKE REACTION = FALSE
+    private Set<User> peopleDisliked;
 
 	public Comment() {
 	}
 
 	// ::::::::: constructors to be used when posting a new comment :::::::::
-	public Comment(String content, long postId, long userId, User sentBy) throws CommentException {
+	public Comment(String content, Post post, User sentBy){
 		this.setContent(content);
-		this.setPostId(postId);
-		this.setUserId(userId);
+		this.setPost(post);
+		//this.setUserId(userId);
 		this.setSentBy(sentBy);
 	}
 
-	public Comment(long id, String content, int likesCount, int dislikesCount, long postId, long userId,
-			Timestamp datetime) throws CommentException {
+	public Comment(long id, String content, int likesCount, int dislikesCount, Post post, long userId,
+			Timestamp datetime){
 		this.setContent(content);
-		this.setPostId(postId);
-		this.setUserId(userId);
+		this.setPost(post);
+		//this.setUserId(userId);
 		this.setId(id);
 		this.setLikesCount(likesCount);
 		this.setDislikesCount(dislikesCount);
@@ -64,11 +74,10 @@ public final class Comment implements Comparable<Comment> {
 	}
 
 	// ::::::::: constructor to be used when loading an existing comment from db
-	public Comment(long id, String content, int likesCount, int dislikesCount, long postId, long userId,
-			Timestamp datetime, User sentBy) throws CommentException {
-		this(content, postId, userId, sentBy);
+	public Comment(long id, String content, int likesCount, int dislikesCount, Post post, long userId,
+			Timestamp datetime, User sentBy){
+		this(content, post, sentBy);
 		this.setId(id);
-		this.setUserId(userId);
 		this.setLikesCount(likesCount);
 		this.setDislikesCount(dislikesCount);
 		this.setDatetime(datetime);
@@ -93,12 +102,8 @@ public final class Comment implements Comparable<Comment> {
 		return this.dislikesCount;
 	}
 
-	public long getPostId() {
-		return this.postId;
-	}
-
-	public long getUserId() {
-		return this.userId;
+	public Post getPost() {
+		return this.post;
 	}
 
 	public Timestamp getDatetime() {
@@ -109,78 +114,54 @@ public final class Comment implements Comparable<Comment> {
 		return this.sentBy;
 	}
 
-	// ::::::::: mutators :::::::::
 	public void setId(long id) {
 		this.id = id;
 	}
 
-	public void setContent(String content) throws CommentException {
+	public void setContent(String content) {
 		if (content != null) {
 			if (content.length() <= MAX_CONTENT_LENGTH) {
 				this.content = content;
-			} else {
-				throw new CommentException("Comment too long!");
 			}
-		} else {
-			throw new CommentException("Invalid comment content!");
 		}
 	}
 
-	public void setLikesCount(int likesCount) throws CommentException {
+	public void setLikesCount(int likesCount)  {
 		if (likesCount >= 0) {
 			this.likesCount = likesCount;
-		} else {
-			throw new CommentException("Invalid number of likes!");
 		}
 	}
 
-	public void setDislikesCount(int dislikesCount) throws CommentException {
+	public void setDislikesCount(int dislikesCount){
 		if (dislikesCount >= 0) {
 			this.dislikesCount = dislikesCount;
-		} else {
-			throw new CommentException("Invalid number of dislikes!");
 		}
 	}
 
-	public void setPostId(long postId) throws CommentException {
-		if (postId > 0) {
-			this.postId = postId;
-		} else {
-			throw new CommentException("Invalid post id!");
+	public void setPost(Post post) {
+		if (post!=null) {
+			this.post = post;
 		}
 	}
 
-	public void setUserId(long userId) throws CommentException {
-		if (userId > 0) {
-			this.userId = userId;
-		} else {
-			throw new CommentException("Invalid user id!");
-		}
-	}
-
-	public void setDatetime(Timestamp datetime) throws CommentException {
+	public void setDatetime(Timestamp datetime){
 		if (datetime != null) {
 			this.datetime = datetime;
 			this.datetimeString= new SimpleDateFormat("MM/dd/yyyy HH:mm").format(datetime);
-
-		} else {
-			throw new CommentException("Invalid date/time!");
 		}
 	}
 
-	public void setSentBy(User sentBy) throws CommentException {
+	public void setSentBy(User sentBy) {
 		if (sentBy != null) {
 			this.sentBy = sentBy;
-		} else {
-			throw new CommentException("Invalid sender!");
 		}
 	}
 
-	public void incrementLikes() throws CommentException {
+	public void incrementLikes() {
 		this.setLikesCount(this.likesCount + 1);
 	}
 
-	public void incrementDislikes() throws CommentException {
+	public void incrementDislikes() {
 		this.setDislikesCount(this.dislikesCount + 1);
 	}
 
@@ -190,47 +171,47 @@ public final class Comment implements Comparable<Comment> {
 	}
 
 	//::::::::: like/dislike functionality :::::::::
-	public void addPersonLiked(long userId) {
+	public void addPersonLiked(User user) {
         if(this.peopleLiked==null){
             this.peopleLiked=new HashSet<>();
         }
-       this.peopleLiked.add(userId);
+       this.peopleLiked.add(user);
     }
 
-    public void removePersonLiked(long userId) {
+    public void removePersonLiked(User user) {
         if(this.peopleLiked==null){
             this.peopleLiked=new HashSet<>();
         }
-        this.peopleLiked.remove(userId);
+        this.peopleLiked.remove(user);
     }
 
-    public void removePersonDisliked(long userId) {
+    public void removePersonDisliked(User user) {
         if(this.peopleDisliked==null){
             this.peopleDisliked=new HashSet<>();
         }
-        this.peopleDisliked.remove(userId);
+        this.peopleDisliked.remove(user);
     }
 
-    public void addPersonDisliked(long userId) {
+    public void addPersonDisliked(User user) {
         if(this.peopleDisliked==null){
             this.peopleDisliked=new HashSet<>();
         }
-        this.peopleDisliked.add(userId);
+        this.peopleDisliked.add(user);
     }
 	
-    public Set<Long> getPeopleLiked() {
+    public Set<User> getPeopleLiked() {
         return Collections.unmodifiableSet(this.peopleLiked);
     }
 
-    public void setPeopleLiked(HashSet<Long> peopleLiked) {
+    public void setPeopleLiked(HashSet<User> peopleLiked) {
         this.peopleLiked = peopleLiked;
     }
 
-    public Set<Long> getPeopleDisliked() {
+    public Set<User> getPeopleDisliked() {
         return Collections.unmodifiableSet(this.peopleDisliked);
     }
 
-    public void setPeopleDisliked(HashSet<Long> peopleDisliked) {
+    public void setPeopleDisliked(HashSet<User> peopleDisliked) {
         this.peopleDisliked = peopleDisliked;
     }
     
