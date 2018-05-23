@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +24,6 @@ public class WelcomeController {
 	@Autowired
 	UserService userService;
 
-	// TODO - INDEX PAGE MUST BE SHOWN FIRST
 	@RequestMapping(value = "/wanderlust", method = RequestMethod.GET)
 	public String getWelcomePage(HttpSession session) {
 		if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
@@ -47,7 +47,7 @@ public class WelcomeController {
 			return "login";
 		}
 		User currentUser = (User) session.getAttribute("user");
-		TreeSet<Post> newsfeedPosts = userService.findNewsFeed(currentUser, NewsfeedType.BY_TIME);
+		Set<Post> newsfeedPosts = userService.findNewsFeed(currentUser, NewsfeedType.BY_TIME);
 		session.setAttribute("newsfeedPosts", newsfeedPosts);
 		return "newsfeed";
 	}

@@ -30,33 +30,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.posts FROM User u WHERE u.userId = :userId")
     Set<Post> findAllPosts(@Param("userId") Long userId);
 
-    @Modifying
-    @Query("Update User u SET u.password=:newPassword WHERE u.userId=:userId")
-    void updatePassword(@Param("userId") Long userId, @Param("newPassword") String newPassword);
+//    @Modifying
+//    @Query("Update User u SET u.password=:newPassword WHERE u.userId=:userId")
+//    void updatePassword(@Param("userId") Long userId, @Param("newPassword") String newPassword);
 
-    @Modifying
-    @Query("Update User u SET u.password=:newPassword WHERE u.userId=:userId")
-    void updateEmail(@Param("userId") Long userId, @Param("newEmail") String newEmail);
+//    @Modifying
+//    @Query("Update User u SET u.password=:newPassword WHERE u.userId=:userId")
+//    void updateEmail(@Param("userId") Long userId, @Param("newEmail") String newEmail);
 
     @Modifying
     @Query("Update User u SET u.profilePic=:profilePic WHERE u.userId=:userId")
     void updateProfilePicId(@Param("userId") Long userId, @Param("profilePic") Multimedia profilePic);
-    //TODO NOT SURE IF THIS WOULD WORK
 
     void updateDescription(long userId, String description);
 
-    @Modifying
-    @Query("Update User u INSERT INTO  u.profilePic=:profilePic WHERE u.userId=:userId")
-    void insertFollower(User follower, User followed);
-
-    @Modifying
-    @Query("Update User u INSERT INTO  u.profilePic=:profilePic WHERE u.userId=:userId")
-    void deleteFollower(User unfollower, User unfollowed);
-
     @Query("SELECT u.username FROM User u")
-    HashSet<String> findAllUsernames();
+    Set<String> findAllUsernames();
 
     @Query("SELECT u.following FROM User u WHERE u.userId = :userId")
-    HashSet<User> findAllFollowing(@Param("userId") Long userId);
+    Set<User> findAllFollowing(@Param("userId") Long userId);
 
 }

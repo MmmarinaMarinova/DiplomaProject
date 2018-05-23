@@ -5,6 +5,7 @@ import com.example.model.Multimedia;
 import com.example.model.Post;
 import com.example.model.User;
 import com.example.model.Utilities.NewsfeedType;
+import com.example.model.exceptions.UserException;
 import com.example.model.repositories.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +61,16 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePassword(User user, String newPassword){
+    public void updatePassword(User user, String newPassword) throws UserException {
         //TODO VALIDATIONS HERE
-        userRepository.updatePassword(user.getUserId(), newPassword);
+        user.setPassword(newPassword);
+        userRepository.save(user);
     }
 
     @Transactional
-    public void updateEmail(User user, String newEmail){
-        userRepository.updateEmail(user.getUserId(), newEmail);
+    public void updateEmail(User user, String newEmail) throws UserException {
+        user.setEmail(newEmail);
+        userRepository.save(user);
         //TODO VALIDATIONS HERE
     }
 
@@ -107,7 +110,7 @@ public class UserService {
     }
 
     @Transactional
-    public HashSet<String> findAllUsernames() {
+    public Set<String> findAllUsernames() {
         return userRepository.findAllUsernames();
     }
     @Transactional
@@ -118,13 +121,13 @@ public class UserService {
     }
 
     @Transactional
-    public HashSet<User> findAllFollowing(User currentUser) {
+    public Set<User> findAllFollowing(User currentUser) {
         return userRepository.findAllFollowing(currentUser.getUserId());
     }
 
     @Transactional
-    public TreeSet<Post> findNewsFeed(User currentUser, NewsfeedType type){
-        HashSet<User> following = findAllFollowing(currentUser);
+    public Set<Post> findNewsFeed(User currentUser, NewsfeedType type){
+        Set<User> following = findAllFollowing(currentUser);
         TreeSet<Post> newsfeed = new TreeSet<>(type.getComparator());
         for (User user : following) {
             newsfeed.addAll(findAllPosts(user.getUserId()));
@@ -132,26 +135,24 @@ public class UserService {
         return newsfeed;
     }
 
-    @Transactional
-    public TreeSet<Post> findNewsFeedByTime(User currentUser) {
-        HashSet<User> following = findAllFollowing(currentUser);
-        TreeSet<Post> newsfeed = new TreeSet<>(new Comparator<Post>() {
-            @Override
-            public int compare(Post o1, Post o2) {
-                return o1.getDateTime().compareTo(o2.getDateTime());
-            }
-        });
-        for (User user : following) {
-            newsfeed.addAll(findAllPosts(user.getUserId()));
-        }
-        return newsfeed;
-    }
+//    @Transactional
+//    public TreeSet<Post> findNewsFeedByTime(User currentUser) {
+//        HashSet<User> following = findAllFollowing(currentUser);
+//        TreeSet<Post> newsfeed = new TreeSet<>(new Comparator<Post>() {
+//            @Override
+//            public int compare(Post o1, Post o2) {
+//                return o1.getDateTime().compareTo(o2.getDateTime());
+//            }
+//        });
+//        for (User user : following) {
+//            newsfeed.addAll(findAllPosts(user.getUserId()));
+//        }
+//        return newsfeed;
+//    }
 
     @Transactional
     public Collection<Location> findVisitedLocations(long userId) {
         return userRepository.findAllVisitedLocations(userId);
     }
-
-
 
 }

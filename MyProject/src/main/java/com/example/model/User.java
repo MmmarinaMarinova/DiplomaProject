@@ -51,16 +51,17 @@ public class User {
 	@JoinTable(name="VISITED_LOCATIONS",
 			joinColumns={@JoinColumn(name="USER_ID")},
 			inverseJoinColumns={@JoinColumn(name="LOCATION_ID")})
-	private Map<Timestamp, Location> visitedLocations; // order by date and time of visit required
+	private Map<Timestamp, Location> visitedLocations = new TreeMap<>(); // order by date and time of visit required
 	@ManyToMany
 	@JoinTable(name="WISHLISTS",
 			joinColumns={@JoinColumn(name="USER_ID")},
 			inverseJoinColumns={@JoinColumn(name="LOCATION_ID")})
-	private Set<Location> wishlist;
+	private Set<Location> wishlist = new TreeSet<>();
 	@OneToMany(mappedBy = "user")
-	private Set<Post> posts; //treeset
-	//TODO many to many mappings
+	private Set<Post> posts = new TreeSet<>(); //treeset
 
+	public User() {
+	}
 
 	// ::::::::: constructor to be used for user registration :::::::::
 	public User(String username, String password, String email) throws UserException {
@@ -77,12 +78,7 @@ public class User {
 		this.setDescription(description);
 	}
 
-	public User() {
-		
-	}
-
 	// ::::::::: constructor to be used when loading an existing user from db
-	// :::::::::
 	public User(long userId, String username, String password, String email, Multimedia profilePic, String description)
 			throws UserException {
 		this(username, password, email);
@@ -91,7 +87,6 @@ public class User {
 		this.setDescription(description);
 	}
 
-	// ::::::::: accessors :::::::::
 	public long getUserId() {
 		return this.userId;
 	}
@@ -134,11 +129,10 @@ public class User {
 		return this.wishlist;
 	}
 
-	public Set<Post> getPosts() throws SQLException, PostException {
+	public Set<Post> getPosts() {
 		return this.posts;
 	}
 
-	// ::::::::: mutators :::::::::
 	public void setUserId(long userId) throws UserException {
 		if (userId > 0) {
 			this.userId = userId;
@@ -161,11 +155,19 @@ public class User {
 	}
 
 	public boolean setPassword(String password) throws UserException {
+		if(validPassword(password)){
+			this.password = password; //hashing required
+			return true;
+		}else{
+			throw new UserException("Password too long!");
+		}
+	}
+
+	private boolean validPassword(String password) throws UserException {
 		if (password != null && password.length() >= MIN_PASSWORD_LENGTH
 				&& (password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])$")
-						|| password.matches(PASSWORD_VALIDATION_REGEX))) {
+				|| password.matches(PASSWORD_VALIDATION_REGEX))) {
 			if (password.length() <= MAX_PASSWORD_LENGTH) {
-				this.password = password; // hashing required
 				return true;
 			} else {
 				throw new UserException("Password too long!");
@@ -197,30 +199,29 @@ public class User {
 		this.followers = followers;
 	}
 
-	public void setFollowing(HashSet<User> following) {
+	public void setFollowing(Set<User> following) {
 		this.following = following;
 	}
 
-	public void setVisitedLocations(TreeMap<Timestamp, Location> visitedLocations) {
+	public void setVisitedLocations(Map<Timestamp, Location> visitedLocations) {
 		this.visitedLocations = visitedLocations;
 	}
 
-	public void setWishlist(HashSet<Location> wishlist) {
+	public void setWishlist(Set<Location> wishlist) {
 		this.wishlist = wishlist;
 	}
 
-	public void setPosts(TreeSet<Post> posts) {
+	public void setPosts(Set<Post> posts) {
 		this.posts = posts;
 	}
 
-	// ::::::::: follow/unfollow :::::::::
 	public void follow(User followed) {
 		if (this.following == null) {
-			this.following = new HashSet<User>();
+			this.following = new HashSet<>();
 		}
 		this.following.add(followed);
 		if (followed.followers == null) {
-			followed.followers = new HashSet<User>();
+			followed.followers = new HashSet<>();
 		}
 		followed.followers.add(this);
 	}
@@ -232,10 +233,9 @@ public class User {
 		}
 	}
 
-	// ::::::::: add/remove from visited_locations :::::::::
 	public void addVisitedLocation(Timestamp datetime, Location location) {
 		if (this.visitedLocations == null) {
-			this.visitedLocations = new TreeMap<Timestamp, Location>();
+			this.visitedLocations = new TreeMap<>();
 		}
 		this.visitedLocations.put(datetime, location);
 	}
@@ -244,10 +244,9 @@ public class User {
 		this.visitedLocations.remove(datetime, location);
 	}
 
-	// ::::::::: add/remove from wishlit :::::::::
 	public void addToWishlist(Location l) {
 		if (this.wishlist == null) {
-			this.wishlist = new HashSet<Location>();
+			this.wishlist = new HashSet<>();
 		}
 		this.wishlist.add(l);
 	}

@@ -5,23 +5,18 @@ import com.amdelamar.jhash.algorithms.Type;
 import com.amdelamar.jhash.exception.BadOperationException;
 import com.amdelamar.jhash.exception.InvalidHashException;
 import com.example.WebInitializer;
-import com.example.model.*;
-import com.example.model.DBManagement.*;
 
+import com.example.model.*;
 import com.example.model.exceptions.*;
-import com.example.model.repositories.TagRepository;
-import com.example.model.repositories.UserRepository;
 import com.example.model.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletContext;
@@ -86,10 +81,10 @@ public class UserController {
 					session.setAttribute("user", user);
 					session.setAttribute("logged", true);
 					request.setAttribute("isValidData", true);
-					HashSet<String> usernames = userService.findAllUsernames();
-					HashSet<Tag> tags = tagService.findAll();
-					HashSet<Category> categories = categoryService.findAll();
-					HashSet<Location> locations = locationService.findAll();
+					Set<String> usernames = userService.findAllUsernames();
+					Set<Tag> tags = tagService.findAll();
+					Set<Category> categories = categoryService.findAll();
+					Set<Location> locations = locationService.findAll();
 					servletContext.setAttribute("locations", locations);
 					servletContext.setAttribute("usernames", usernames);
 					servletContext.setAttribute("tags", tags);
@@ -199,7 +194,7 @@ public class UserController {
 
 	@RequestMapping(value = "/settings/changeEmail", method = RequestMethod.POST)
 	public String changeEmail(HttpSession session, HttpServletRequest request,
-			@Valid @ModelAttribute("email") String email, BindingResult result) {
+			@Valid @ModelAttribute("email") String email, BindingResult result) throws UserException {
 		if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
 			return "login";
 		}
