@@ -1,4 +1,3 @@
-<%@ page import="com.example.model.DBManagement.UserDao"%>
 
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
@@ -273,9 +272,9 @@ function handleFollow(userId) {
     }
 
     var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 2,
-        center: new google.maps.LatLng(42.6388078, 23.1838613),
-        mapTypeId: google.maps.MapTypeId.ROADMAP
+            zoom: 2,
+            center: new google.maps.LatLng(42.6388078, 23.1838613),
+            mapTypeId: google.maps.MapTypeId.ROADMAP
     });
 
     var infowindow = new google.maps.InfoWindow();

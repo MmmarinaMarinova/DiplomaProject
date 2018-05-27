@@ -5,12 +5,12 @@ import com.example.model.exceptions.*;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "CATEGORIES")
 public class Category {
 	private final static int MAX_LENGTH = 255;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	private String name;
 
@@ -18,7 +18,7 @@ public class Category {
 	}
 
 	// * constructor to be used when putting object in database
-	Category(String name) throws CategoryException {
+	public Category(String name) throws CategoryException {
 		this.setName(name);
 	}
 

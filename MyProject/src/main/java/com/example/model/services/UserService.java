@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -30,19 +29,15 @@ public class UserService {
     @Transactional
     public User save(User user){
         //TODO VALIDATIONS HERE
-        user = userRepository.save(user);
+        if(null != user){
+            user = userRepository.saveAndFlush(user);
+        }
         return user;
     }
 
     @Transactional
     public boolean existsUsername(String username){
         return userRepository.existsUsername(username);
-    }
-
-    @Transactional
-    public Map<Timestamp,Location> getSortedVisitedLocations(Long userId) {
-            //return userRepository.findAllVisitedLocations(userId);
-        return null;
     }
 
     @Transactional
@@ -61,63 +56,83 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePassword(User user, String newPassword) throws UserException {
-        //TODO VALIDATIONS HERE
+    public User updatePassword(User user, String newPassword) throws UserException {
         user.setPassword(newPassword);
-        userRepository.save(user);
+        return userRepository.saveAndFlush(user);
     }
 
     @Transactional
     public void updateEmail(User user, String newEmail) throws UserException {
         user.setEmail(newEmail);
-        userRepository.save(user);
-        //TODO VALIDATIONS HERE
+        userRepository.saveAndFlush(user);
     }
 
     @Transactional
     public void updateDescription(User user, String description){
-        userRepository.updateDescription(user.getUserId(), description);
+        if(description == null){
+            user.setDescription("");
+        }else{
+            user.setDescription(description);
+        }
+        userRepository.saveAndFlush(user);
     }
 
+    /**
+     * This is a method for following a new user
+     * It uses bidirectional addition in the follower's and followed's lists
+     * @param follower
+     * @param followed
+     */
     @Transactional
     public void follow(User follower, User followed){
         this.addFollower(follower, followed);
         this.addFollowed(follower, followed);
-        userRepository.save(follower);
+        userRepository.saveAndFlush(follower);
     }
 
     private void addFollower(User follower, User followed) {
-        followed.getFollowers().add(follower);
+        if(null != follower && null != followed){
+            followed.getFollowers().add(follower);
+        }
     }
 
     private void addFollowed(User follower, User followed) {
-        follower.getFollowing().add(followed);
+        if(null != follower && null != followed) {
+            follower.getFollowing().add(followed);
+        }
     }
 
     @Transactional
     public void unfollow(User unfollower, User unfollowed) {
         this.removeFollower(unfollower, unfollowed);
         this.removeFollowed(unfollowed, unfollower);
-        userRepository.save(unfollower);
+        userRepository.saveAndFlush(unfollower);
     }
 
     private void removeFollowed(User unfollowed, User unfollower) {
-        unfollower.getFollowing().remove(unfollowed);
+        if(null != unfollower && null != unfollowed) {
+            unfollower.getFollowing().remove(unfollowed);
+        }
     }
 
     private void removeFollower(User unfollower, User unfollowed) {
-        unfollowed.getFollowers().remove(unfollower);
+        if(null != unfollower && null != unfollowed){
+            unfollowed.getFollowers().remove(unfollower);
+        }
     }
 
     @Transactional
     public Set<String> findAllUsernames() {
         return userRepository.findAllUsernames();
     }
+
     @Transactional
-    public void updateProfilePic(User user, Multimedia profilePic) {
-        //todo transaction needed here
-        profilePic = multimediaService.save(profilePic);
-        userRepository.updateProfilePicId(user.getUserId(), profilePic);
+    public User updateProfilePic(User user, Multimedia profilePic) {
+        if( null != user && null != profilePic){
+            user.setProfilePic(profilePic);
+            user = userRepository.saveAndFlush(user);
+        }
+        return user;
     }
 
     @Transactional
@@ -135,24 +150,44 @@ public class UserService {
         return newsfeed;
     }
 
-//    @Transactional
-//    public TreeSet<Post> findNewsFeedByTime(User currentUser) {
-//        HashSet<User> following = findAllFollowing(currentUser);
-//        TreeSet<Post> newsfeed = new TreeSet<>(new Comparator<Post>() {
-//            @Override
-//            public int compare(Post o1, Post o2) {
-//                return o1.getDateTime().compareTo(o2.getDateTime());
-//            }
-//        });
-//        for (User user : following) {
-//            newsfeed.addAll(findAllPosts(user.getUserId()));
-//        }
-//        return newsfeed;
-//    }
-
     @Transactional
     public Collection<Location> findVisitedLocations(long userId) {
         return userRepository.findAllVisitedLocations(userId);
     }
+
+    public Set<User> getTaggedUsers(String taggedPeople) {
+        Set<User> users = new HashSet<>();
+        if (!"".equals(taggedPeople)) {
+            String[] splitUsernames = taggedPeople.split(",");
+            for (int i = 0; i < splitUsernames.length; i++) {
+                String currentUsername = splitUsernames[i];
+                currentUsername = currentUsername.replace("]", "");
+                currentUsername = currentUsername.replace("[", "");
+                currentUsername = currentUsername.trim();
+                if (!"".equals(currentUsername)) {
+                    if (userRepository.existsUsername(currentUsername)) {
+                        User user = userRepository.findByUsername(currentUsername);
+                        users.add(user);
+                    }
+                }
+            }
+        }
+        return users;
+    }
+
+    /**
+     * This is a method that returns a set of users according to input search text
+     * The users are returned if they have the input text in their description or their username
+     * @param searchFormDataTxt input text
+     * @return Set<User>
+     */
+    @Transactional
+    public Set<User> getFilteredUsers(String searchFormDataTxt) {
+        if(searchFormDataTxt != null && !searchFormDataTxt.isEmpty()){
+            return userRepository.findFilteredUsers(searchFormDataTxt);
+        }
+        return Collections.emptySet();
+    }
+
 
 }

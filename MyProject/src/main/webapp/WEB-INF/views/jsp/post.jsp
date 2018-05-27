@@ -99,8 +99,6 @@ tr {
 				<div class="subContainer">
 					Likes:
 					<p id="likesCount">${sessionScope.post.peopleLiked.size()}</p>
-					Dislikes:
-					<p id="dislikesCount">${sessionScope.post.peopleDisliked.size()}</p>
 				</div>
 				</td>
 		</tr>
@@ -147,8 +145,6 @@ tr {
             window.open('https://www.facebook.com/sharer/sharer.php?u=https://192.168.6.237:8080/post/'+${sessionScope.post.id},  'sharer', 'width=626,height=436');
 
         }
-
-
 	</script>
 
 
@@ -188,9 +184,6 @@ tr {
 							${comment.sentBy.username}</a> <br>${comment.content} <br>
 						<p id="likesCount/${comment.id}">Likes:
 							${comment.peopleLiked.size()}</p>
-						<p id="dislikesCount/${comment.id}">Dislikes:
-							${comment.peopleDisliked.size()}</p>
-
 
 						<div id="likeComment/dislikeComment">
 							<c:set var="containsLiked" value="false" />
@@ -203,30 +196,12 @@ tr {
 							<c:if test="${containsLiked}">
 								<button style="background-color: red"
 									id="likeButton/${comment.id}"
-									onclick="handleCommentLike(${comment.id})">Unlike</button>
+									onclick="reactToComment(${comment.id})">Unlike</button>
 							</c:if>
 							<c:if test="${!containsLiked}">
 								<button style="background-color: green"
 									id="likeButton/${comment.id}"
-									onclick="handleCommentLike(${comment.id})">Like</button>
-							</c:if>
-
-							<c:set var="containsDisliked" value="false" />
-							<c:forEach var="personDisliked" items="${comment.peopleDisliked}">
-								<c:if test="${personDisliked eq sessionScope.user.userId}">
-									<c:set var="containsDisliked" value="true" />
-								</c:if>
-							</c:forEach>
-
-							<c:if test="${containsDisliked}">
-								<button style="background-color: red"
-									id="dislikeButton/${comment.id}"
-									onclick="handleCommentDislike(${comment.id})">Undislike</button>
-							</c:if>
-							<c:if test="${!containsDisliked}">
-								<button style="background-color: green"
-									id="dislikeButton/${comment.id}"
-									onclick="handleCommentDislike(${comment.id})">Dislike</button>
+									onclick="reactToComment(${comment.id})">Like</button>
 							</c:if>
 						</div>
 
@@ -248,159 +223,39 @@ tr {
 
 		<c:if test="${containsLiked}">
 			<button style="background-color: red" id="likeButton"
-				onclick="handleLike(${sessionScope.post.id})">Unlike</button>
+				onclick="reactToPost(${sessionScope.post.id})">Unlike</button>
 		</c:if>
 		<c:if test="${!containsLiked}">
 			<button style="background-color: green" id="likeButton"
-				onclick="handleLike(${sessionScope.post.id})">Like</button>
-		</c:if>
-
-		<c:set var="containsDisliked" value="false" />
-		<c:forEach var="personDisliked"
-			items="${sessionScope.post.peopleDisliked}">
-			<c:if test="${personDisliked eq sessionScope.user.userId}">
-				<c:set var="containsDisliked" value="true" />
-			</c:if>
-		</c:forEach>
-
-		<c:if test="${containsDisliked}">
-			<button style="background-color: red" id="dislikeButton"
-				onclick="handleDislike(${sessionScope.post.id})">Undislike</button>
-		</c:if>
-		<c:if test="${!containsDisliked}">
-			<button style="background-color: green" id="dislikeButton"
-				onclick="handleDislike(${sessionScope.post.id})">Dislike</button>
+				onclick="reactToPost(${sessionScope.post.id})">Like</button>
 		</c:if>
 	</div>
 
 	<jsp:include page="footer.jsp"></jsp:include>
 
 	<script>
-    function handleLike(postId){
-        var button = document.getElementById("likeButton");
-        var title = button.innerHTML;
-        if(title == 'Like'){
-            likePost(postId);
-        }
-        else{
-            unlikePost(postId);
-        }
-    }
-
-    function handleDislike(postId){
-        var button = document.getElementById("dislikeButton");
-        var title = button.innerHTML;
-        if(title == "Dislike"){
-            dislikePost(postId);
-        }
-        else{
-            undislikePost(postId);
-        }
-    }
-
-    function likePost(postId) {
+    function reactToPost(postId) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
-            //when response is received
             if (this.readyState == 4 && this.status == 200) {
                 var likeButton = document.getElementById("likeButton");
-                likeButton.innerHTML = "Unlike";
-                likeButton.style.background='red';
-                var dislikeButton=document.getElementById("dislikeButton");
-                dislikeButton.innerHTML="Dislike";
-                dislikeButton.style.background="green";
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount").innerHTML=counters[0];
-                document.getElementById("dislikesCount").innerHTML=counters[1];
-
-            }
-            else if(this.readyState == 4 && this.status == 201){
-                var likeButton1 = document.getElementById("likeButton");
-                likeButton1.innerHTML = "Unlike";
-                likeButton1.style.background='red';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount").innerHTML=counters[0];
-                document.getElementById("dislikesCount").innerHTML=counters[1];
+                var title = likeButton.innerHTML;
+                if(title == 'Like'){
+                    likeButton.innerHTML = "Unlike";
+                    likeButton.style.background='red';
+				}
+				else{
+                    likeButton.innerHTML = "Like";
+                    likeButton.style.background='green';
+				}
+                var likes=JSON.parse(request.responseText);
+                document.getElementById("likesCount").innerHTML=likes;
             }
             else if (this.readyState == 4 && this.status == 401) {
                 alert("Sorry, you cannot like this video!");
             }
-        }
-        request.open("post", "/like/"+postId, true);
-        request.send();
-    }
-
-    function unlikePost(postId) {
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            //when response is received
-            if (this.readyState == 4 && this.status == 200) {
-                var button = document.getElementById("likeButton");
-                button.innerHTML = "Like";
-                button.style.background='green';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount").innerHTML=counters[0];
-                document.getElementById("dislikesCount").innerHTML=counters[1];
-            }
-            else
-            if (this.readyState == 4 && this.status == 401) {
-                alert("Sorry, you must log in to like this video!");
-            }
-        }
-        request.open("post", "/unlike/"+postId, true);
-        request.send();
-    }
-
-    function dislikePost(postId) {
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            //when response is received
-            if (this.readyState == 4 && this.status == 200) {
-                var dislikeButton = document.getElementById("dislikeButton");
-                dislikeButton.innerHTML = "Undislike";
-                dislikeButton.style.background='red';
-                var likeButton=document.getElementById("likeButton");
-                likeButton.innerHTML="Like";
-                likeButton.style.background="green";
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount").innerHTML=counters[0];
-                document.getElementById("dislikesCount").innerHTML=counters[1];
-            }
-            else if(this.readyState == 4 && this.status == 201){
-                var dislikeButton1 = document.getElementById("dislikeButton");
-                dislikeButton1.innerHTML = "Undislike";
-                dislikeButton1.style.background='red';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount").innerHTML=counters[0];
-                document.getElementById("dislikesCount").innerHTML=counters[1];
-            }
-            else
-            if (this.readyState == 4 && this.status == 401) {
-                alert("Sorry, you must log in to dislike this video!");
-            }
-        }
-        request.open("post", "/dislike/"+postId, true);
-        request.send();
-    }
-
-    function undislikePost(postId) {
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            //when response is received
-            if (this.readyState == 4 && this.status == 200) {
-                var button = document.getElementById("dislikeButton");
-                button.innerHTML = "Dislike";
-                button.style.background='green';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount").innerHTML=counters[0];
-                document.getElementById("dislikesCount").innerHTML=counters[1];
-            }
-            else
-            if (this.readyState == 4 && this.status == 401) {
-                alert("Sorry, you must log in to like this video!");
-            }
-        }
-        request.open("post", "/undislike/"+postId, true);
+        };
+        request.open("post", "/reactToPost/"+postId, true);
         request.send();
     }
 </script>
@@ -443,152 +298,50 @@ tr {
     	   document.getElementById("newCommentInputContent").value = "";
     	    var request = new XMLHttpRequest();
     	      request.onreadystatechange = function() {
-    	          //when response is received 
     	          if (this.readyState == 4 && this.status == 200) {
     	             var comment = JSON.parse(request.responseText); 
     	             var commentContent = comment.content;
     	             var commentDatetime = comment.datetimeString;
     	            var commentId = comment.id;
-    	            //now that everything is set:    
+    	            //now that everything is set:r
     	            var table = document.getElementById("commentsTable");
     	            var row = table.insertRow(0);
     	             var cell = row.insertCell(0);
-    	             var newInnerHtml = "<div class='container' width=70%> <img src='/user/picture/${sessionScope.user.userId}' border='3' width='45' height='45' align='middle'style='border-radius: 80px; border-style: solid; border-color: #bbb;'>"+commentDatetime+" <a target='_blank' href='/showPassport/${sessionScope.user.userId}'>${sessionScope.user.username}</a><br>"+ commentContent +"<br><p id='likesCount/"+ commentId + "'>Likes: 0</p><p id='dislikesCount/"+ commentId + "'>Dislikes: 0</p> <button style='background-color: green' id='likeButton/" + commentId +"' onclick='handleCommentLike("+ commentId + ")'>Like</button><button style='background-color: green' id='dislikeButton/" + commentId +"'onclick='handleCommentDislike("+ commentId + ")'>Dislike</button></div>";
+    	             var newInnerHtml = "<div class='container' width=70%> <img src='/user/picture/${sessionScope.user.userId}' border='3' width='45' height='45' align='middle'style='border-radius: 80px; border-style: solid; border-color: #bbb;'>"+commentDatetime+" <a target='_blank' href='/showPassport/${sessionScope.user.userId}'>${sessionScope.user.username}</a><br>"+ commentContent +"<br><p id='likesCount/"+ commentId + "'>Likes: 0</p><p id='dislikesCount/"+ commentId + "'>Dislikes: 0</p> <button style='background-color: green' id='likeButton/" + commentId +"' onclick='reactToComment("+ commentId + ")'>Like</button><button style='background-color: green' id='dislikeButton/" + commentId +"'onclick='reactToComment("+ commentId + ")'>Dislike</button></div>";
     	    	             cell.innerHTML = newInnerHtml;
     	          }
     	          else
     	          if (this.readyState == 4 && this.status == 401) {
     	              alert("Sorry, you must log in to comment on this post.");
     	          }
-    	      }
+    	      };
     	      request.open("POST", "/postComment/"+postId + "/" + textAreaInput, true);
     	      request.send();
     	  }
     </script>
+
 	<script>
-    function handleCommentLike(commentId){
-        var button = document.getElementById("likeButton/"+commentId);
-        var title = button.innerHTML;
-        if(title == 'Like'){
-            likeComment(commentId);
-        }
-        else{
-            unlikeComment(commentId);
-        }
-    }
-
-    function handleCommentDislike(commentId){
-        var button = document.getElementById("dislikeButton/"+commentId);
-        var title = button.innerHTML;
-        if(title == "Dislike"){
-            dislikeComment(commentId);
-        }
-        else{
-            undislikeComment(commentId);
-        }
-    }
-
-    function likeComment(commentId) {
+    function reactToComment(commentId) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
-            //when response is received
             if (this.readyState == 4 && this.status == 200) {
                 var likeButton = document.getElementById("likeButton/"+commentId);
-                likeButton.innerHTML = "Unlike";
-                likeButton.style.background='red';
-                var dislikeButton=document.getElementById("dislikeButton/"+commentId);
-                dislikeButton.innerHTML="Dislike";
-                dislikeButton.style.background="green";
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount/"+commentId).innerHTML= "Likes: " + counters[0];
-                document.getElementById("dislikesCount/"+commentId).innerHTML= "Dislikes: " + counters[1];    
-            }
-            else if(this.readyState == 4 && this.status == 201){
-                var likeButton1 = document.getElementById("likeButton/"+commentId);
-                likeButton1.innerHTML = "Unlike";
-                likeButton1.style.background='red';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount/"+commentId).innerHTML= "Likes: " + counters[0];
-                document.getElementById("dislikesCount/"+commentId).innerHTML= "Dislikes: " + counters[1];    
+                var title = likeButton.innerHTML;
+                if(title == 'Like'){
+                    likeButton.innerHTML = "Unlike";
+                    likeButton.style.background='red';
+				}else if(title == 'Unlike'){
+                    likeButton.innerHTML = "Like";
+                    likeButton.style.background='green';
+				}
+                var counter=JSON.parse(request.responseText);
+                document.getElementById("likesCount/"+commentId).innerHTML= "Likes: " + counter;
             }
             else if (this.readyState == 4 && this.status == 401) {
                 alert("Sorry, you cannot like this video!");
             }
-        }
-        request.open("POST", "/likeComment/"+commentId, true);
-        request.send();
-    }
-
-    function unlikeComment(commentId) {
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            //when response is received
-            if (this.readyState == 4 && this.status == 200) {
-                var button = document.getElementById("likeButton/"+commentId);
-                button.innerHTML = "Like";
-                button.style.background='green';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount/"+commentId).innerHTML= "Likes: " + counters[0];
-                document.getElementById("dislikesCount/"+commentId).innerHTML= "Dislikes: " + counters[1];    
-            }
-            else
-            if (this.readyState == 4 && this.status == 401) {
-                alert("Sorry, you must log in to like this video!");
-            }
-        }
-        request.open("POST", "/unlikeComment/"+commentId, true);
-        request.send();
-    }
-
-    function dislikeComment(commentId) {
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            //when response is received
-            if (this.readyState == 4 && this.status == 200) {
-                var dislikeButton = document.getElementById("dislikeButton/"+commentId);
-                dislikeButton.innerHTML = "Undislike";
-                dislikeButton.style.background='red';
-                var likeButton=document.getElementById("likeButton/"+commentId);
-                likeButton.innerHTML="Like";
-                likeButton.style.background="green";
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount/"+commentId).innerHTML= "Likes: " + counters[0];
-                document.getElementById("dislikesCount/"+commentId).innerHTML= "Dislikes: " + counters[1];    
-            }
-            else if(this.readyState == 4 && this.status == 201){
-                var dislikeButton1 = document.getElementById("dislikeButton/"+commentId);
-                dislikeButton1.innerHTML = "Undislike";
-                dislikeButton1.style.background='red';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount/"+commentId).innerHTML= "Likes: " + counters[0];
-                document.getElementById("dislikesCount/"+commentId).innerHTML= "Dislikes: " + counters[1];    
-            }
-            else
-            if (this.readyState == 4 && this.status == 401) {
-                alert("Sorry, you must log in to dislike this video!");
-            }
-        }
-        request.open("post", "/dislikeComment/"+commentId, true);
-        request.send();
-    }
-
-    function undislikeComment(commentId) {
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            //when response is received
-            if (this.readyState == 4 && this.status == 200) {
-                var button = document.getElementById("dislikeButton/"+commentId);
-                button.innerHTML = "Dislike";
-                button.style.background='green';
-                var counters=JSON.parse(request.responseText);
-                document.getElementById("likesCount/"+commentId).innerHTML= "Likes: " + counters[0];
-                document.getElementById("dislikesCount/"+commentId).innerHTML= "Dislikes: " + counters[1];            }
-            else
-            if (this.readyState == 4 && this.status == 401) {
-                alert("Sorry, you must log in to like this video!");
-            }
-        }
-        request.open("POST", "/undislikeComment/"+commentId, true);
+        };
+        request.open("POST", "/reactToComment/"+commentId, true);
         request.send();
     }
 </script>

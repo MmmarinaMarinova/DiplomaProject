@@ -1,17 +1,15 @@
 package com.example.model;
 
-import com.example.model.DBManagement.MultimediaDao;
 import com.example.model.exceptions.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+
 import java.util.*;
 
 @Entity
-@Table(name="users")
+@Table(name="USERS")
 public class User {
 	// ::::::::: additional object characteristics :::::::::
 	private static final int MIN_USERNAME_LENGTH = 5;
@@ -21,70 +19,99 @@ public class User {
 	private static final String PASSWORD_VALIDATION_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*([0-9]|[\\W])).+$";
 	private static final String EMAIL_VALIDATION_REGEX = "^[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$";
 	private static final String USERNAME_VALIDATION_REGEX = "([A-Za-z0-9-_]+)";
+	public static Multimedia AVATAR=new Multimedia(0,"avatar.png",false, null);
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long userId;
+
 	@Size(min = MIN_USERNAME_LENGTH, max = MAX_USERNAME_LENGTH)
 	@Pattern(regexp = USERNAME_VALIDATION_REGEX, message = "Username must be at least " + MIN_USERNAME_LENGTH
 			+ " characters long and must contain only letters, digits, hyphens and underscores! ")
 	private String username;
+
 	@Pattern(regexp = PASSWORD_VALIDATION_REGEX, message = "Password must be at least " + MIN_PASSWORD_LENGTH
 			+ " characters long and must contain at least one lowercase character, at least one uppercase character" +
 			" and at least one non-alphabetic character!")
 	@Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH)
 	private String password;
+
 	@Pattern(regexp = EMAIL_VALIDATION_REGEX, message = "Invalid email address")
 	private String email;
+
 	private String description = "";
-	@OneToOne
+
+	@OneToOne(cascade = CascadeType.ALL,
+			fetch = FetchType.LAZY)
 	private Multimedia profilePic;
-	@ManyToMany
-	@JoinTable(name = "USERS_FOLLOWERS", joinColumns = { @JoinColumn(name = "FOLLOWER_ID") },
+
+	@ManyToMany(cascade = CascadeType.ALL,
+			fetch = FetchType.LAZY)
+	@JoinTable(name = "USERS_FOLLOWERS",
+            joinColumns = { @JoinColumn(name = "FOLLOWER_ID") },
 			inverseJoinColumns = { @JoinColumn(name = "FOLLOWED_ID") } )
 	private Set<User> followers = new HashSet<>();
-	@ManyToMany
-	@JoinTable(name = "USERS_FOLLOWERS", joinColumns = { @JoinColumn(name = "FOLLOWED_ID") },
+
+	@ManyToMany(cascade = CascadeType.ALL,
+			fetch = FetchType.LAZY)
+	@JoinTable(name = "USERS_FOLLOWERS",
+            joinColumns = { @JoinColumn(name = "FOLLOWED_ID") },
 			inverseJoinColumns = { @JoinColumn(name = "FOLLOWER_ID") } )
 	private Set<User> following = new HashSet<>();
-	@ManyToMany
+
+	@ManyToMany(cascade = CascadeType.ALL,
+			fetch = FetchType.LAZY)
 	@JoinTable(name="VISITED_LOCATIONS",
 			joinColumns={@JoinColumn(name="USER_ID")},
 			inverseJoinColumns={@JoinColumn(name="LOCATION_ID")})
-	private Map<Timestamp, Location> visitedLocations = new TreeMap<>(); // order by date and time of visit required
-	@ManyToMany
+	private Set<Location> visitedLocations = new HashSet<>();
+
+	@ManyToMany(cascade = CascadeType.ALL,
+			fetch = FetchType.LAZY)
 	@JoinTable(name="WISHLISTS",
 			joinColumns={@JoinColumn(name="USER_ID")},
 			inverseJoinColumns={@JoinColumn(name="LOCATION_ID")})
-	private Set<Location> wishlist = new TreeSet<>();
-	@OneToMany(mappedBy = "user")
-	private Set<Post> posts = new TreeSet<>(); //treeset
+	private Set<Location> wishlist = new HashSet<>();
+
+	@OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+	private Set<Post> posts = new TreeSet<>();
 
 	public User() {
 	}
 
 	// ::::::::: constructor to be used for user registration :::::::::
 	public User(String username, String password, String email) throws UserException {
-		this.setUsername(username);
-		this.setPassword(password);
-		this.setEmail(email);
-		this.setProfilePic(MultimediaDao.AVATAR);
+		this.username = username;
+		this.password = password;
+		this.email = email;
+//		this.setUsername(username);
+//		this.setPassword(password);
+//		this.setEmail(email);
+		this.setProfilePic(AVATAR);
+		//todo remove the avatar from here
 	}
 
 	public User(long userId, String username, Multimedia profilePic, String description) throws UserException {
-		this.setUserId(userId);
-		this.setUsername(username);
-		this.setProfilePic(profilePic);
-		this.setDescription(description);
+		this.userId = userId;
+		this.username = username;
+		this.profilePic = profilePic;
+		this.description = description;
+//		this.setUserId(userId);
+//		this.setUsername(username);
+//		this.setProfilePic(profilePic);
+//		this.setDescription(description);
 	}
 
 	// ::::::::: constructor to be used when loading an existing user from db
 	public User(long userId, String username, String password, String email, Multimedia profilePic, String description)
 			throws UserException {
 		this(username, password, email);
-		this.setUserId(userId);
-		this.setProfilePic(profilePic);
-		this.setDescription(description);
+		this.userId = userId;
+		this.profilePic = profilePic;
+		this.description = description;
+//		this.setUserId(userId);
+//		this.setProfilePic(profilePic);
+//		this.setDescription(description);
 	}
 
 	public long getUserId() {
@@ -117,12 +144,6 @@ public class User {
 
 	public Set<User> getFollowing() {
 		return this.following;
-	}
-
-	public SortedMap<Timestamp, Location> getVisitedLocations() {
-		//return UserService.getSortedVisitedLocations(this.userId);
-		//return Collections.unmodifiableSortedMap(this.visitedLocations);
-		return null;
 	}
 
 	public Set<Location> getWishlist() {
@@ -203,7 +224,7 @@ public class User {
 		this.following = following;
 	}
 
-	public void setVisitedLocations(Map<Timestamp, Location> visitedLocations) {
+	public void setVisitedLocations(Set<Location> visitedLocations) {
 		this.visitedLocations = visitedLocations;
 	}
 
@@ -214,6 +235,10 @@ public class User {
 	public void setPosts(Set<Post> posts) {
 		this.posts = posts;
 	}
+
+    public boolean follows(User u) {
+        return this.following != null && this.following.contains(u);
+    }
 
 	public void follow(User followed) {
 		if (this.following == null) {
@@ -233,43 +258,55 @@ public class User {
 		}
 	}
 
-	public void addVisitedLocation(Timestamp datetime, Location location) {
+	public void addVisitedLocation(Location location) {
 		if (this.visitedLocations == null) {
-			this.visitedLocations = new TreeMap<>();
+			this.visitedLocations = new HashSet<>();
 		}
-		this.visitedLocations.put(datetime, location);
+		if(null != location){
+			this.visitedLocations.add(location);
+		}
 	}
 
-	public void removeVisitedLocation(Timestamp datetime, Location location) {
-		this.visitedLocations.remove(datetime, location);
+	public void removeVisitedLocation(Location location) {
+	    if(null != location){
+            this.visitedLocations.remove(location);
+        }
 	}
 
-	public void addToWishlist(Location l) {
+	public void addToWishlist(Location location) {
 		if (this.wishlist == null) {
 			this.wishlist = new HashSet<>();
 		}
-		this.wishlist.add(l);
+		this.wishlist.add(location);
 	}
 
-	public void removeFromWihslist(Location l) {
-		this.wishlist.remove(l);
+	public void removeFromWihslist(Location location) {
+	    if( null != location){
+            this.wishlist.remove(location);
+        }
 	}
 
 	// ::::::::: add/remove from posts :::::::::
 	public void addPost(Post p) {
 		if (this.posts == null) {
-			this.posts = new TreeSet<Post>();
+			this.posts = new TreeSet<>();
 		}
-		this.posts.add(p);
+		if(null != p){
+            this.posts.add(p);
+        }
 	}
 
 	public void removePost(Post p) {
-		this.posts.remove(p);
+	    if(null != p){
+            this.posts.remove(p);
+        }
 	}
 
-	// ::::::::: overriding of 'hashCode()' and 'equals()' methods :::::::::
-	// only 'userId' field is used for user distinction
-	// (duplicate usernames and emails must not be assigned)
+    /**
+     * Only "UserId" field is used for user distinction
+     * duplicate usernames and emails must not be assigned
+     * @return
+     */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -291,9 +328,4 @@ public class User {
 			return false;
 		return true;
 	}
-
-	public boolean follows(User u) {
-		return this.following != null && this.following.contains(u);
-	}
-	
 }

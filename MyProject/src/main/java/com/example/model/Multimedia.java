@@ -6,12 +6,12 @@ import javax.persistence.*;
 @Table(name = "multimedia")
 public class Multimedia {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String url;
     private boolean isVideo;
     //todo why multimedia is not in post?!?!?!?
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "POST_ID") //join  column is used for declaring the foreign key
     private Post post;
 
@@ -22,19 +22,23 @@ public class Multimedia {
     public Multimedia(long id, String url, boolean isVideo, Post post) {
         this(url, isVideo, post);
         this.id = id;
-        this.setPost(post);
+        this.post = post;
+//        this.setPost(post);
     }
 
     //constructor to be used when putting object in database
     public Multimedia(String url, boolean isVideo, Post post) {
-        this.setUrl(url);
-        this.setVideo(isVideo);
-        this.setPost(post);
+        this.url = url;
+        this.isVideo = isVideo;
+        this.post = post;
+//        this.setUrl(url);
+//        this.setVideo(isVideo);
+//        this.setPost(post);
     }
 
     public Multimedia(String url, boolean isVideo) {
-        this.url=url;
-        this.isVideo=isVideo;
+        this.url = url;
+        this.isVideo = isVideo;
     }
 
     public long getId() {

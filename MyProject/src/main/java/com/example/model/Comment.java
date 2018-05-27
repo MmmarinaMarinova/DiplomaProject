@@ -1,11 +1,9 @@
 package com.example.model;
 
-import com.example.model.exceptions.*;
-
 import javax.persistence.*;
+
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,53 +15,58 @@ public class Comment implements Comparable<Comment> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
+
 	private String content;
+
 	//todo maybe remove likes and dislikes count -> can take them from people liked.size
 	private int likesCount = 0;
-	private int dislikesCount = 0;
-	@ManyToOne
+
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "POST_ID")
 	private Post post;
-	@ManyToOne
+
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "USER_ID")
 	private User sentBy;
-	//private long userId = 0;
+
 	private Timestamp datetime;
 	//todo string is not needed since we can have method in service class that returns it
 	private String datetimeString;
-	@ManyToMany
-	@JoinTable(name="COMMENTS_REACTIONS",
+
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JoinTable(name="COMMENTS_LIKES",
 			joinColumns={@JoinColumn(name="COMMENT_ID")},
-			inverseJoinColumns={@JoinColumn(name="USER_ID")}) //LIKE REACTION = TRUE
+			inverseJoinColumns={@JoinColumn(name="USER_ID")})
     private Set<User> peopleLiked;
-	@ManyToMany
-	@JoinTable(name="COMMENTS_REACTIONS",
-			joinColumns={@JoinColumn(name="COMMENT_ID")},
-			inverseJoinColumns={@JoinColumn(name="USER_ID")}) //DISLIKE REACTION = FALSE
-    private Set<User> peopleDisliked;
 
 	public Comment() {
 	}
 
-	// ::::::::: constructors to be used when posting a new comment :::::::::
-	public Comment(String content, Post post, User sentBy){
-		this.setContent(content);
-		this.setPost(post);
-		//this.setUserId(userId);
-		this.setSentBy(sentBy);
+	public Comment(String content, Post post, User sentBy) {
+		this.content = content;
+		this.post = post;
+		this.sentBy = sentBy;
 	}
 
-	public Comment(long id, String content, int likesCount, int dislikesCount, Post post, long userId,
+	//	// ::::::::: constructors to be used when posting a new comment :::::::::
+//	public Comment(String content, Post post, User sentBy){
+//		this.setContent(content);
+//		this.setPost(post);
+//		this.setSentBy(sentBy);
+//	}
+
+	//NOT USED CONSTRUCTOR
+	public Comment(long id, String content, int likesCount, Post post, long userId,
 			Timestamp datetime){
 		this.setContent(content);
 		this.setPost(post);
-		//this.setUserId(userId);
 		this.setId(id);
 		this.setLikesCount(likesCount);
-		this.setDislikesCount(dislikesCount);
 		this.setDatetime(datetime);
 		this.datetimeString = new SimpleDateFormat("MM/dd/yyyy HH:mm").format(datetime);
 	}
+
+
 
 	public String getDatetimeString() {
 		return this.datetimeString;
@@ -73,17 +76,16 @@ public class Comment implements Comparable<Comment> {
 		this.datetimeString = datetimeString;
 	}
 
-	// ::::::::: constructor to be used when loading an existing comment from db
-	public Comment(long id, String content, int likesCount, int dislikesCount, Post post, long userId,
-			Timestamp datetime, User sentBy){
-		this(content, post, sentBy);
-		this.setId(id);
-		this.setLikesCount(likesCount);
-		this.setDislikesCount(dislikesCount);
-		this.setDatetime(datetime);
-		this.datetimeString=new SimpleDateFormat("MM/dd/yyyy HH:mm").format(datetime);
-		this.setSentBy(sentBy);
-	}
+//	// ::::::::: constructor to be used when loading an existing comment from db
+//	public Comment(long id, String content, int likesCount,Post post, long userId,
+//			Timestamp datetime, User sentBy){
+//		this(content, post, sentBy);
+//		this.setId(id);
+//		this.setLikesCount(likesCount);
+//		this.setDatetime(datetime);
+//		this.datetimeString=new SimpleDateFormat("MM/dd/yyyy HH:mm").format(datetime);
+//		this.setSentBy(sentBy);
+//	}
 
 	// ::::::::: accessors :::::::::
 	public long getId() {
@@ -96,10 +98,6 @@ public class Comment implements Comparable<Comment> {
 
 	public int getLikesCount() {
 		return this.likesCount;
-	}
-
-	public int getDislikesCount() {
-		return this.dislikesCount;
 	}
 
 	public Post getPost() {
@@ -132,14 +130,8 @@ public class Comment implements Comparable<Comment> {
 		}
 	}
 
-	public void setDislikesCount(int dislikesCount){
-		if (dislikesCount >= 0) {
-			this.dislikesCount = dislikesCount;
-		}
-	}
-
 	public void setPost(Post post) {
-		if (post!=null) {
+		if (post != null) {
 			this.post = post;
 		}
 	}
@@ -161,16 +153,12 @@ public class Comment implements Comparable<Comment> {
 		this.setLikesCount(this.likesCount + 1);
 	}
 
-	public void incrementDislikes() {
-		this.setDislikesCount(this.dislikesCount + 1);
-	}
-
 	@Override
 	public int compareTo(Comment c) {
 		return c.getDatetime().compareTo(this.getDatetime());
 	}
 
-	//::::::::: like/dislike functionality :::::::::
+	//todo not sure where to put those methods
 	public void addPersonLiked(User user) {
         if(this.peopleLiked==null){
             this.peopleLiked=new HashSet<>();
@@ -184,35 +172,13 @@ public class Comment implements Comparable<Comment> {
         }
         this.peopleLiked.remove(user);
     }
-
-    public void removePersonDisliked(User user) {
-        if(this.peopleDisliked==null){
-            this.peopleDisliked=new HashSet<>();
-        }
-        this.peopleDisliked.remove(user);
-    }
-
-    public void addPersonDisliked(User user) {
-        if(this.peopleDisliked==null){
-            this.peopleDisliked=new HashSet<>();
-        }
-        this.peopleDisliked.add(user);
-    }
 	
     public Set<User> getPeopleLiked() {
-        return Collections.unmodifiableSet(this.peopleLiked);
+        return this.peopleLiked;
     }
 
     public void setPeopleLiked(HashSet<User> peopleLiked) {
         this.peopleLiked = peopleLiked;
     }
 
-    public Set<User> getPeopleDisliked() {
-        return Collections.unmodifiableSet(this.peopleDisliked);
-    }
-
-    public void setPeopleDisliked(HashSet<User> peopleDisliked) {
-        this.peopleDisliked = peopleDisliked;
-    }
-    
 }

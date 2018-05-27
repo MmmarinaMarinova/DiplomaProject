@@ -3,6 +3,7 @@ package com.example.model;
 import com.example.model.exceptions.*;
 
 import javax.persistence.*;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,20 +19,21 @@ public class Location {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
+
 	private String latitude;
 	private String longtitude;
 	//TODO REMOVE THIS FIELD AND MOVE METHOD SETSHORTDESCRIPTION TO SERVICE CLASS
 	private String shortDescription;
 	private String description;
 	private String locationName;
-	@ManyToMany
+
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinTable(name="VISITED_LOCATIONS",
 			joinColumns={@JoinColumn(name="LOCATION_ID")},
 			inverseJoinColumns={@JoinColumn(name="USER_ID")})
-	//TODO DELETE ID COLUMN FROM VISITED_LOCATIONS TABLE IN DB
-	//TODO SAVE AND UPDATE METHODS SHOULD PUT TIMESTAMP ALSO
 	private Set<User> peopleVisited; //concurrentSkipListSet
-	@OneToMany
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "MULTIMEDIA_ID")
 	private Set<Multimedia> pictures;
 
@@ -39,11 +41,15 @@ public class Location {
 	}
 
 	public Location(String latitude, String longtitude, String description, String locationName) throws LocationException {
-		this.setLatitude(latitude);
-		this.setLongtitude(longtitude);
-		this.setDescription(description);
+		this.latitude = latitude;
+		this.longtitude = longtitude;
+		this.description = description;
+		this.locationName = locationName;
 		this.setShortDesciption();
-		this.setLocationName(locationName);
+//		this.setLatitude(latitude);
+//		this.setLongtitude(longtitude);
+//		this.setDescription(description);
+//		this.setLocationName(locationName);
 		this.peopleVisited = new ConcurrentSkipListSet<>();
 	}
 
@@ -91,7 +97,7 @@ public class Location {
 	}
 
 	public Set<Multimedia> getPictures() {
-		return Collections.unmodifiableSet(this.pictures);
+		return this.pictures;
 	}
 
 	public Multimedia getMainPic() {
@@ -118,7 +124,7 @@ public class Location {
 	}
 
 	public Collection<User> getPeopleVisited() {
-		return Collections.unmodifiableCollection(this.peopleVisited);
+		return this.peopleVisited;
 	}
 
 	public void setPeopleVisited(ConcurrentSkipListSet<User> peopleVisited) {

@@ -1,12 +1,9 @@
 package com.example.controller;
 
 import com.example.WebInitializer;
-import com.example.model.DBManagement.MultimediaDao;
 import com.example.model.Multimedia;
-import com.example.model.exceptions.PostException;
-import com.example.model.exceptions.UserException;
-
 import com.example.model.services.MultimediaService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,12 +12,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 
 /**
  * Created by Marina on 29.10.2017 г..

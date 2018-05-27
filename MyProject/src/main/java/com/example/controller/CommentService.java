@@ -1,15 +1,14 @@
 package com.example.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.example.model.Post;
 import com.example.model.services.CommService;
 import com.example.model.services.PostService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,12 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.Comment;
 import com.example.model.User;
-import com.example.model.DBManagement.CommentDao;
-import com.example.model.DBManagement.PostDao;
-import com.example.model.DBManagement.UserDao;
-import com.example.model.exceptions.CommentException;
-import com.example.model.exceptions.PostException;
-import com.example.model.exceptions.UserException;
 
 @Controller
 @RestController
