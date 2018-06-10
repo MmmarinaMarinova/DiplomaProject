@@ -24,6 +24,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
                                 @Param("latitude") String latitude,
                                 @Param("longtitude") String longtitude);
 
-    @Query("SELECT l FROM Location l WHERE l.locationName LIKE :searchFormDataTxt OR l.description LIKE :searchFormDataTxt")
+    @Query("SELECT l FROM Location l WHERE l.locationName LIKE CONCAT('%', :searchFormDataTxt, '%') " +
+            "OR l.description LIKE CONCAT('%', :searchFormDataTxt, '%')")
     Set<Location> findFilteredLocations(@Param("searchFormDataTxt") String searchFormDataTxt);
 }

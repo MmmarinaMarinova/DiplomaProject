@@ -32,12 +32,13 @@ public class CommentService {
 	@ResponseBody
 	public Comment postComment(HttpSession session, HttpServletResponse resp, @PathVariable("postId") long postId,
 							   @PathVariable("content") String content) throws IOException {
-		if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
+		if(session.getAttribute("user") == null || session.getAttribute("logged").equals(false)){
 			resp.sendRedirect("login");
 		}
 		User sentBy = (User) session.getAttribute("user");
 		Post post = postService.findOne(postId);
 		Comment comment = new Comment(content, post, sentBy);
+		post.getComments().add(comment); //this is done because of bidirectional mapping
 		comment = commService.saveComment(comment);
 		resp.setStatus(200);
 		return comment;

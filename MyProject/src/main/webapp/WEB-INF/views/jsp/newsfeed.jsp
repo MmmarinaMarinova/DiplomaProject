@@ -137,10 +137,6 @@ with
 										<span class="w3-padding-large w3-right"><b>Likes:  </b>
 											<span class="w3-tag">${post.peopleLiked.size()}</span></span>
 									</p>
-									<p>
-										<span class="w3-padding-large w3-right"><b>Dislikes:
-												 </b> <span class="w3-tag">${post.peopleDisliked.size()}</span></span>
-									</p>
 								</div>
 							</div>
 						</div>

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.ServletContext;
 import java.util.*;
 
 /**
@@ -25,11 +26,14 @@ public class UserService {
     LocationService locationService;
     @Autowired
     MultimediaService multimediaService;
+    @Autowired
+    ServletContext servletContext;
 
     @Transactional
     public User save(User user){
         //TODO VALIDATIONS HERE
         if(null != user){
+            user.setProfilePic((Multimedia) servletContext.getAttribute("profilePic"));
             user = userRepository.saveAndFlush(user);
         }
         return user;
@@ -141,12 +145,23 @@ public class UserService {
     }
 
     @Transactional
+    private Set<User> findAllFollowers(User user) {
+        return userRepository.findAllFollowers(user.getUserId());
+    }
+
+    @Transactional
     public Set<Post> findNewsFeed(User currentUser, NewsfeedType type){
         Set<User> following = findAllFollowing(currentUser);
         TreeSet<Post> newsfeed = new TreeSet<>(type.getComparator());
         for (User user : following) {
-            newsfeed.addAll(findAllPosts(user.getUserId()));
+            for (Post post : findAllPosts(user.getUserId())) {
+                newsfeed.add(post);
+            }
         }
+//
+//        following.stream().forEach(u -> {
+//            findAllPosts(u.getUserId()).stream().forEach(p -> newsfeed.add(p));
+//        });
         return newsfeed;
     }
 
@@ -190,4 +205,17 @@ public class UserService {
     }
 
 
+    @Transactional
+    public User findByIdAndGetFollowing(long id) {
+        User user = this.findById(id);
+        user.setFollowing(this.findAllFollowing(user));
+        user.setFollowers(this.findAllFollowers(user));
+        return user;
+    }
+
+
+    @Transactional
+    public Multimedia findProfilePic(User user) {
+        return userRepository.findPoriflePic(user);
+    }
 }

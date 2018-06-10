@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -39,9 +40,10 @@ import org.springframework.web.servlet.view.JstlView;
 import javax.persistence.EntityManagerFactory;
 
 @Configuration
+@SpringBootApplication
 @EnableAutoConfiguration
-@EnableJpaRepositories
-@EnableTransactionManagement
+//@EnableJpaRepositories
+//@EnableTransactionManagement
 @EnableWebMvc
 @ComponentScan("com.example")
 public class SpringWebConfig extends WebMvcConfigurerAdapter {
@@ -135,6 +137,10 @@ public class SpringWebConfig extends WebMvcConfigurerAdapter {
 		properties.setProperty("hibernate.hbm2ddl.auto", "create");
 		properties.setProperty(
 				"hibernate.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect");
+		properties.setProperty("spring.jpa.show-sql", "true");
+		properties.setProperty("spring.jpa.properties.hibernate.format_sql", "true");
+		properties.setProperty("logging.level.org.hibernate.type", "trace");
+		properties.setProperty("spring.jpa.hibernate.naming_strategy ", "org.hibernate.cfg.ImprovedNamingStrategy");
 
 		return properties;
 	}

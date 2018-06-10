@@ -1,6 +1,7 @@
 package com.example.model.repositories;
 
 import com.example.model.Location;
+import com.example.model.Multimedia;
 import com.example.model.Post;
 import com.example.model.User;
 
@@ -23,8 +24,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.username = :username")
     User findByUsername(@Param("username") String username);
 
-    @Query("SELECT u.visitedLocations FROM User u")
-    Set<Location> findAllVisitedLocations(Long userId);
+    @Query("SELECT u.visitedLocations FROM User u WHERE u.userId = :userId")
+    Set<Location> findAllVisitedLocations(@Param("userId") Long userId);
 
     @Query("SELECT u.posts FROM User u WHERE u.userId = :userId")
     Set<Post> findAllPosts(@Param("userId") Long userId);
@@ -35,7 +36,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.following FROM User u WHERE u.userId = :userId")
     Set<User> findAllFollowing(@Param("userId") Long userId);
 
-    @Query("SELECT DISTINCT u.userId, u.username, u.profilePic, u.description FROM User u " +
-            "WHERE u.username LIKE :searchFormDataTxt OR u.description LIKE :searchhFormDataTxt")
+    @Query("SELECT DISTINCT u FROM User u WHERE u.username LIKE CONCAT('%',:searchFormDataTxt,'%') OR u.description LIKE CONCAT('%',:searchFormDataTxt,'%')")
     Set<User> findFilteredUsers(@Param("searchFormDataTxt") String searchFormDataTxt);
+
+    @Query("SELECT u.followers FROM User u WHERE u.userId = :userId")
+    Set<User> findAllFollowers(@Param("userId") long userId);
+
+    @Query("SELECT u.profilePic FROM User u WHERE u = :user")
+    Multimedia findPoriflePic(@Param("user") User user);
 }

@@ -19,7 +19,6 @@ public class User {
 	private static final String PASSWORD_VALIDATION_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*([0-9]|[\\W])).+$";
 	private static final String EMAIL_VALIDATION_REGEX = "^[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$";
 	private static final String USERNAME_VALIDATION_REGEX = "([A-Za-z0-9-_]+)";
-	public static Multimedia AVATAR=new Multimedia(0,"avatar.png",false, null);
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -41,22 +40,23 @@ public class User {
 
 	private String description = "";
 
-	@OneToOne(cascade = CascadeType.ALL,
+	@OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
 			fetch = FetchType.LAZY)
 	private Multimedia profilePic;
 
-	@ManyToMany(cascade = CascadeType.ALL,
+	@ManyToMany(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
 			fetch = FetchType.LAZY)
 	@JoinTable(name = "USERS_FOLLOWERS",
             joinColumns = { @JoinColumn(name = "FOLLOWER_ID") },
 			inverseJoinColumns = { @JoinColumn(name = "FOLLOWED_ID") } )
 	private Set<User> followers = new HashSet<>();
 
-	@ManyToMany(cascade = CascadeType.ALL,
-			fetch = FetchType.LAZY)
-	@JoinTable(name = "USERS_FOLLOWERS",
-            joinColumns = { @JoinColumn(name = "FOLLOWED_ID") },
-			inverseJoinColumns = { @JoinColumn(name = "FOLLOWER_ID") } )
+//	@ManyToMany(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
+//			fetch = FetchType.LAZY)
+//	@JoinTable(name = "USERS_FOLLOWERS",
+//            joinColumns = { @JoinColumn(name = "FOLLOWED_ID") },
+//			inverseJoinColumns = { @JoinColumn(name = "FOLLOWER_ID") } )
+	@ManyToMany(mappedBy = "followers")
 	private Set<User> following = new HashSet<>();
 
 	@ManyToMany(cascade = CascadeType.ALL,
@@ -73,7 +73,7 @@ public class User {
 			inverseJoinColumns={@JoinColumn(name="LOCATION_ID")})
 	private Set<Location> wishlist = new HashSet<>();
 
-	@OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "user",cascade = CascadeType.MERGE)
 	private Set<Post> posts = new TreeSet<>();
 
 	public User() {
@@ -87,7 +87,7 @@ public class User {
 //		this.setUsername(username);
 //		this.setPassword(password);
 //		this.setEmail(email);
-		this.setProfilePic(AVATAR);
+		this.setProfilePic(Multimedia.AVATAR);
 		//todo remove the avatar from here
 	}
 
@@ -112,6 +112,11 @@ public class User {
 //		this.setUserId(userId);
 //		this.setProfilePic(profilePic);
 //		this.setDescription(description);
+	}
+
+	public User(String username, String password, String email, Multimedia profilePic) throws UserException {
+		this(username, password, email);
+		this.profilePic = profilePic;
 	}
 
 	public long getUserId() {

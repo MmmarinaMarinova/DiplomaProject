@@ -4,15 +4,13 @@ import com.example.model.Category;
 import com.example.model.exceptions.CategoryException;
 import com.example.model.repositories.CategoryRepository;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.ServletContext;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Marina on 19.5.2018 г..
@@ -40,15 +38,16 @@ public class CategoryService {
                     categoryName = categoryName.trim();
                     categoryName = categoryName.replace("]", "");
                     categoryName = categoryName.replace("[", "");
-                    Map<String, Category> applicationScopeCategories =
-                            (HashMap<String, Category>) servletContext.getAttribute("categories");
-                    Category category = null;
-                    if (applicationScopeCategories.containsKey(categoryName)) {
-                        category = applicationScopeCategories.get(categoryName);
-                    } else {
-                        category = new Category(categoryName);
+                    Set<Category> applicationScopeCategories =
+                            (Set<Category>) servletContext.getAttribute("categories");
+                    if(applicationScopeCategories != null){
+                        for (Category cat : applicationScopeCategories) {
+                            if(categoryName.equals(cat.getName())){
+                                categories.add(cat);
+                            }
+                        }
                     }
-                    categories.add(category);
+
                 }
             }
         }

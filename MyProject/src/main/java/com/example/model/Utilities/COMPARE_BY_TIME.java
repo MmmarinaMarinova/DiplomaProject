@@ -8,8 +8,17 @@ import java.util.Comparator;
  * Created by Marina on 20.5.2018 г..
  */
 public class COMPARE_BY_TIME implements Comparator<Post> {
+//    @Override
+//    public int compare(Post o1, Post o2) {
+//        return o1.compareTo(o2);
+//    }
+
+
     @Override
     public int compare(Post o1, Post o2) {
-        return o1.compareTo(o2);
+        if(o1 != null && o2 != null){
+            return o1.compareTo(o2);
+        }
+        return 0;
     }
 }

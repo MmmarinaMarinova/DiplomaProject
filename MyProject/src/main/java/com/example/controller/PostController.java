@@ -79,7 +79,7 @@ public class PostController {
             }
 
             post = new Post(user, description, video, location, categories, multimedia, taggedUsers, tags);
-            postService.save(post);
+            postService.save(post, user,description, video, location, categories, multimedia, taggedUsers, tags);
         } catch (PostException | LocationException | CategoryException e) {
             e.printStackTrace();
         }

@@ -3,6 +3,7 @@ package com.example.model.services;
 import com.example.model.*;
 import com.example.model.repositories.PostRepository;
 
+import com.example.model.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,10 @@ public class PostService {
     PostRepository postRepository;
     @Autowired
     CategoryService categoryService;
+    @Autowired
+    UserService userService;
+    @Autowired
+    MultimediaService multimediaService;
 
     @Transactional
     public Post findOne(long postId) {
@@ -26,13 +31,14 @@ public class PostService {
     }
 
     @Transactional
-    public boolean existsReaction(long postId, long userId) {
-        return postRepository.existsReaction(postId, userId);
+    public boolean existsReaction(Post post, User user) {
+        return postRepository.existsReaction(post.getId(), user);
     }
 
     @Transactional
     public Post reactToPost(Post post, User user) {
-        if (existsReaction(post.getId(), user.getUserId())) {
+        user = userService.findById(user.getUserId());
+        if (existsReaction(post, user)) {
             post.getPeopleLiked().remove(user);
         } else {
             post.getPeopleLiked().add(user);
@@ -41,8 +47,18 @@ public class PostService {
     }
 
     @Transactional
-    public Post save(Post post) {
-            return postRepository.saveAndFlush(post);
+    public Post save(Post post, User user, String description, Multimedia video, Location location, Set<Category> categories, Set<Multimedia> multimedia, Set<User> taggedUsers, Set<Tag> tags) {
+        if(multimedia != null && multimedia.size() > 0){
+            for (Multimedia m : multimedia) {
+                m.setPost(post);
+                multimediaService.save(m);
+            }        }
+        if(video != null){
+            video.setPost(post);
+            multimediaService.save(video);
+        }
+        post.setUser(user);
+        return postRepository.saveAndFlush(post);
     }
 
     @Transactional

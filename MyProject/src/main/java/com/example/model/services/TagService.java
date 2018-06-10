@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.ServletContext;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Marina on 12.5.2018 г..
@@ -28,7 +28,6 @@ public class TagService {
     public Set<Tag> getTags(String tagNames) {
         Set<Tag> tags = null;
         if (!"".equals(tagNames)) {
-
             tags = new HashSet<>();
             String[] splitTags = tagNames.split(",");
 
@@ -37,23 +36,41 @@ public class TagService {
                 tagName = tagName.trim();
                 tagName = tagName.replace("]", "");
                 tagName = tagName.replace("[", "");
+
+                Tag tag = null;
                 if (!"".equals(tagName)) {
-                    Tag tag = null;
-                    if (((HashSet<String>) servletContext.getAttribute("tags")).contains(tagName)) {
-                        tag = this.findByName(tagName);
-                    } else {
+                    Set<String> servlContxtTags = (Set<String>) servletContext.getAttribute("tags");
+                    if(servlContxtTags != null){
+                        Boolean existsTag = servlContxtTags.contains(tagName);
+                        if(existsTag){
+                            tag = this.findByName(tagName);
+                        }else{
+                            tag = new Tag(tagName);
+                        }
+                    }else {
                         tag = new Tag(tagName);
                     }
                     tags.add(tag);
                 }
             }
-            return tags.size() > 0 ? tags : null;
+
+            if(tags.size() > 0){
+                tagRepository.save(tags);
+                tagRepository.flush();
+                servletContext.setAttribute("tags", this.findAllTagNames());
+            }
+            return tags;
         }
-        return tags;
+        return null;
     }
 
     @Transactional
     public Tag findByName(String tagName){
         return tagRepository.findByName(tagName);
+    }
+
+    @Transactional
+    public Set<String> findAllTagNames() {
+        return tagRepository.findAllNames();
     }
 }

@@ -121,7 +121,7 @@
     <h6>Tags should be separated by ","</h6>
     <br> <br>
     Add categories:
-    <input name="categories" data-list="${applicationScope.categories.keySet()}" data-multiple-categories />
+    <input name="categories" data-list="${applicationScope.categories}" data-multiple-categories />
     <h6>Categories should be separated by ","</h6>
     <br>
 

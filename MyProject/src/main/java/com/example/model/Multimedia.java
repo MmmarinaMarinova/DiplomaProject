@@ -5,6 +5,9 @@ import javax.persistence.*;
 @Entity
 @Table(name = "multimedia")
 public class Multimedia {
+    public static Multimedia AVATAR=new Multimedia(0,"avatar.png",false, null);
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;

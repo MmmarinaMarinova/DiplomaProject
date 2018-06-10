@@ -4,6 +4,7 @@ import com.example.model.Comment;
 import com.example.model.User;
 import com.example.model.repositories.CommRepository;
 
+import com.example.model.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +19,11 @@ import java.sql.Timestamp;
 public class CommService {
     @Autowired
     CommRepository commentRepository;
+    @Autowired
+    UserRepository userRepository;
 
     @Transactional
     public Comment saveComment(Comment comment) {
-        //todo needs additional logic for datetime insert
         comment.setDatetime(new Timestamp(System.currentTimeMillis()));
         return commentRepository.saveAndFlush(comment);
     }
@@ -32,13 +34,14 @@ public class CommService {
     }
 
     @Transactional
-    public boolean existsReaction(long postId, long userId) {
-        return commentRepository.existsReaction(postId, userId);
+    public boolean existsReaction(Comment comment, User user) {
+        return commentRepository.existsReaction(comment.getId(), user);
     }
 
     @Transactional
     public Comment reactToComment(Comment comment, User user) {
-        if (existsReaction(comment.getId(), user.getUserId())) {
+        //user = userRepository.findOne(user.getUserId());
+        if (existsReaction(comment, user)) {
             comment.getPeopleLiked().remove(user);
         } else {
             comment.getPeopleLiked().add(user);

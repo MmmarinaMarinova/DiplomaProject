@@ -87,14 +87,14 @@ tr {
 				<div class="subContainer">
 					Categories:
 					<c:forEach var="category" items="${sessionScope.post.categories}">
-					${category.name};
-				</c:forEach>
+						${category.name};
+					</c:forEach>
 				</div>
 				<div class="subContainer">
 					Tags:
 					<c:forEach var="tag" items="${sessionScope.post.tags}">
-					${tag.tag_name};
-				</c:forEach>
+						${tag.tag_name};
+					</c:forEach>
 				</div>
 				<div class="subContainer">
 					Likes:
@@ -182,25 +182,24 @@ tr {
 						${comment.datetimeString} <a target="_blank"
 							href="/showPassport/${comment.sentBy.userId}">
 							${comment.sentBy.username}</a> <br>${comment.content} <br>
-						<p id="likesCount/${comment.id}">Likes:
-							${comment.peopleLiked.size()}</p>
+						<p id="likesCount/${comment.id}">Likes: ${comment.peopleLiked.size()}</p>
 
 						<div id="likeComment/dislikeComment">
 							<c:set var="containsLiked" value="false" />
 							<c:forEach var="personLiked" items="${comment.peopleLiked}">
-								<c:if test="${personLiked eq sessionScope.user.userId}">
+								<c:if test="${personLiked.userId eq sessionScope.user.userId}">
 									<c:set var="containsLiked" value="true" />
 								</c:if>
 							</c:forEach>
 
 							<c:if test="${containsLiked}">
 								<button style="background-color: red"
-									id="likeButton/${comment.id}"
+									id="likeCommentButton/${comment.id}"
 									onclick="reactToComment(${comment.id})">Unlike</button>
 							</c:if>
 							<c:if test="${!containsLiked}">
 								<button style="background-color: green"
-									id="likeButton/${comment.id}"
+									id="likeCommentButton/${comment.id}"
 									onclick="reactToComment(${comment.id})">Like</button>
 							</c:if>
 						</div>
@@ -216,17 +215,17 @@ tr {
 	<div id="like/dislike">
 		<c:set var="containsLiked" value="false" />
 		<c:forEach var="personLiked" items="${sessionScope.post.peopleLiked}">
-			<c:if test="${personLiked eq sessionScope.user.userId}">
+			<c:if test="${personLiked eq sessionScope.user}">
 				<c:set var="containsLiked" value="true" />
 			</c:if>
 		</c:forEach>
 
 		<c:if test="${containsLiked}">
-			<button style="background-color: red" id="likeButton"
+			<button style="background-color: red" id="likePostButton"
 				onclick="reactToPost(${sessionScope.post.id})">Unlike</button>
 		</c:if>
 		<c:if test="${!containsLiked}">
-			<button style="background-color: green" id="likeButton"
+			<button style="background-color: green" id="likePostButton"
 				onclick="reactToPost(${sessionScope.post.id})">Like</button>
 		</c:if>
 	</div>
@@ -238,7 +237,7 @@ tr {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
-                var likeButton = document.getElementById("likeButton");
+                var likeButton = document.getElementById("likePostButton");
                 var title = likeButton.innerHTML;
                 if(title == 'Like'){
                     likeButton.innerHTML = "Unlike";
@@ -255,7 +254,7 @@ tr {
                 alert("Sorry, you cannot like this video!");
             }
         };
-        request.open("post", "/reactToPost/"+postId, true);
+        request.open("post", "likePost/"+postId, true);
         request.send();
     }
 </script>
@@ -302,13 +301,13 @@ tr {
     	             var comment = JSON.parse(request.responseText); 
     	             var commentContent = comment.content;
     	             var commentDatetime = comment.datetimeString;
-    	            var commentId = comment.id;
-    	            //now that everything is set:r
-    	            var table = document.getElementById("commentsTable");
-    	            var row = table.insertRow(0);
+    	             var commentId = comment.id;
+    	             //now that everything is set:r
+    	             var table = document.getElementById("commentsTable");
+    	             var row = table.insertRow(0);
     	             var cell = row.insertCell(0);
-    	             var newInnerHtml = "<div class='container' width=70%> <img src='/user/picture/${sessionScope.user.userId}' border='3' width='45' height='45' align='middle'style='border-radius: 80px; border-style: solid; border-color: #bbb;'>"+commentDatetime+" <a target='_blank' href='/showPassport/${sessionScope.user.userId}'>${sessionScope.user.username}</a><br>"+ commentContent +"<br><p id='likesCount/"+ commentId + "'>Likes: 0</p><p id='dislikesCount/"+ commentId + "'>Dislikes: 0</p> <button style='background-color: green' id='likeButton/" + commentId +"' onclick='reactToComment("+ commentId + ")'>Like</button><button style='background-color: green' id='dislikeButton/" + commentId +"'onclick='reactToComment("+ commentId + ")'>Dislike</button></div>";
-    	    	             cell.innerHTML = newInnerHtml;
+    	             var newInnerHtml = "<div class='container' width=70%> <img src='/user/picture/${sessionScope.user.userId}' border='3' width='45' height='45' align='middle'style='border-radius: 80px; border-style: solid; border-color: #bbb;'>"+commentDatetime+" <a target='_blank' href='/showPassport/${sessionScope.user.userId}'>${sessionScope.user.username}</a><br>"+ commentContent +"<br><p id='likesCount/"+ commentId + "'>Likes: 0</p> <button style='background-color: green' id='likeCommentButton/" + commentId +"' onclick='reactToComment("+ commentId + ")'>Like</button>";
+    	             cell.innerHTML = newInnerHtml;
     	          }
     	          else
     	          if (this.readyState == 4 && this.status == 401) {
@@ -325,7 +324,7 @@ tr {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
-                var likeButton = document.getElementById("likeButton/"+commentId);
+                var likeButton = document.getElementById("likeCommentButton/"+commentId);
                 var title = likeButton.innerHTML;
                 if(title == 'Like'){
                     likeButton.innerHTML = "Unlike";

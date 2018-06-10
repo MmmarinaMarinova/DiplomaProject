@@ -1,13 +1,13 @@
 package com.example.model;
 
 import com.example.model.exceptions.*;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 
-import java.sql.Timestamp;
-
 import java.text.SimpleDateFormat;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,7 +22,7 @@ public class Post implements Comparable<Post> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @ManyToOne(cascade = CascadeType.ALL,
+    @ManyToOne(cascade = CascadeType.MERGE,
             fetch = FetchType.LAZY)
     @JoinColumn(name = "USER_ID")
     private User user;
@@ -34,7 +34,9 @@ public class Post implements Comparable<Post> {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Multimedia video;
 
-    private Timestamp dateTime;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateTime;
     private String dateTimeString;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -61,10 +63,10 @@ public class Post implements Comparable<Post> {
             inverseJoinColumns={@JoinColumn(name="USER_ID")})
     private Set<User> taggedPeople;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "post", cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private Set<Comment> comments = new TreeSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade ={CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     @JoinTable(name="POSTS_LIKES",
             joinColumns={@JoinColumn(name="POST_ID")},
             inverseJoinColumns={@JoinColumn(name="USER_ID")})
@@ -78,6 +80,7 @@ public class Post implements Comparable<Post> {
                 Set<Multimedia> multimedia, Set<User> taggedPeople, Set<Tag> tags) throws PostException {
         this.user = user;
         this.description = description;
+        this.setDateTime(new Date(System.currentTimeMillis()));
         this.video = video;
         this.location = location;
         this.categories = categories;
@@ -90,7 +93,7 @@ public class Post implements Comparable<Post> {
     }
 
     // constructor to be used when fetching from database
-    public Post(long id, String description, int likesCount, int dislikesCount, Timestamp dateTime) throws PostException {
+    public Post(long id, String description, int likesCount, int dislikesCount, Date dateTime) throws PostException {
         this.id = id;
         this.likesCount = likesCount;
         this.description = description;
@@ -99,7 +102,7 @@ public class Post implements Comparable<Post> {
     }
 
     //not used constructor
-    public Post(User user, String description, int likes_count, Timestamp date_time,
+    public Post(User user, String description, int likes_count, Date date_time,
                 long location_id) throws PostException {
         this.dateTimeString= new SimpleDateFormat("MM/dd/yyyy HH:mm").format(date_time);
     }
@@ -170,16 +173,16 @@ public class Post implements Comparable<Post> {
         this.likesCount = likesCount;
     }
 
-    public Timestamp getDateTime() {
+    public Date getDateTime() {
         return this.dateTime;
     }
 
-    public void setDateTime(Timestamp dateTime) {
+    public void setDateTime(Date dateTime) {
         this.dateTime = dateTime;
         this.dateTimeString= new SimpleDateFormat("MM/dd/yyyy HH:mm").format(dateTime);
     }
 
-    public String getDateTimeAsString() {
+    public String getDateTimeString() {
         return  this.dateTimeString;
     }
 

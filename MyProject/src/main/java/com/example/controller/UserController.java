@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -81,8 +82,9 @@ public class UserController {
 					session.setAttribute("user", user);
 					session.setAttribute("logged", true);
 					request.setAttribute("isValidData", true);
+					session.setAttribute("profilePic", userService.findProfilePic(user));
 					Set<String> usernames = userService.findAllUsernames();
-					Set<Tag> tags = tagService.findAll();
+					Set<String> tags = tagService.findAllTagNames();
 					Set<Category> categories = categoryService.findAll();
 					Set<Location> locations = locationService.findAll();
 					servletContext.setAttribute("locations", locations);
@@ -90,6 +92,7 @@ public class UserController {
 					servletContext.setAttribute("tags", tags);
 					servletContext.setAttribute("categories", categories);
 					servletContext.setAttribute("categoryNames", categories);
+					servletContext.setAttribute("profilePic", Multimedia.AVATAR);
 					return "redirect:/showPassport/" + user.getUserId();
 				}
 			} else {
@@ -118,7 +121,9 @@ public class UserController {
 			User test = new User(username, pass, email); //test if given data is correct
 			if (pass != null && pass.equals(pass2)) {
 					if (!userService.existsUsername(username)) {
-						User user = new User(username, Hash.create(pass, Type.BCRYPT), email);
+						Multimedia profilePic = multimediaService.save(Multimedia.AVATAR);
+						servletContext.setAttribute("profilePic", profilePic);
+						User user = new User(username, Hash.create(pass, Type.BCRYPT), email, profilePic);
 						userService.save(user);
 						session.setAttribute("user", user);
 						session.setAttribute("logged", true);

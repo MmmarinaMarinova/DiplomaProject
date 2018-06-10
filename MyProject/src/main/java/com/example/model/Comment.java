@@ -21,11 +21,11 @@ public class Comment implements Comparable<Comment> {
 	//todo maybe remove likes and dislikes count -> can take them from people liked.size
 	private int likesCount = 0;
 
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToOne(cascade ={CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.LAZY)
 	@JoinColumn(name = "POST_ID")
 	private Post post;
 
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.LAZY)
 	@JoinColumn(name = "USER_ID")
 	private User sentBy;
 
@@ -33,7 +33,7 @@ public class Comment implements Comparable<Comment> {
 	//todo string is not needed since we can have method in service class that returns it
 	private String datetimeString;
 
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.EAGER)
 	@JoinTable(name="COMMENTS_LIKES",
 			joinColumns={@JoinColumn(name="COMMENT_ID")},
 			inverseJoinColumns={@JoinColumn(name="USER_ID")})

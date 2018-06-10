@@ -19,6 +19,7 @@ import com.example.model.services.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -119,6 +120,7 @@ public class ExploreController {
 			return "login";
 		}
 		User current = (User) session.getAttribute("user");
+		current.setFollowing(userService.findAllFollowing(current));
 		User selectedUser = userService.findById(id);
 		session.setAttribute("selectedUser", selectedUser);
 		request.setAttribute("thisFollowsSelected", current.follows(selectedUser));
@@ -203,7 +205,7 @@ public class ExploreController {
 
 	@RequestMapping(value = "/user/picture/{id}", method = RequestMethod.GET)
 	public void getUserPicture(@PathVariable("id") long id, HttpSession session,HttpServletResponse response) throws IOException {
-		if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
+		if(session.getAttribute("user") == null || session.getAttribute("logged").equals(false)){
 			response.sendRedirect("login");
 		}
 		try {

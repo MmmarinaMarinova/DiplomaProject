@@ -26,7 +26,7 @@ public class LocationsService {
     public Collection<Location> getVisitedPlaces(HttpSession session,HttpServletResponse response,
                                                  @PathVariable("userId") long userId) throws IOException {
 
-		if(session.getAttribute("user")==null || session.getAttribute("logged").equals(false)){
+		if(session.getAttribute("user") == null || session.getAttribute("logged").equals(false)){
 			response.sendRedirect("login");
 		}
 		Collection<Location> locations = userService.findVisitedLocations(userId);
